@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, Typography, List, Alert, Badge } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, Typography, List, Alert, Badge, Rate } from 'antd';
 import {
   CustomerServiceOutlined,
   FileProtectOutlined,
@@ -9,7 +9,9 @@ import {
   DollarOutlined,
   AlertOutlined,
   SafetyCertificateOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  TrophyOutlined,
+  StarOutlined
 } from '@ant-design/icons';
 import { useApp, Case, Certificate } from '@/context/AppContext';
 import Link from 'next/link';
@@ -17,13 +19,20 @@ import Link from 'next/link';
 const { Title, Text } = Typography;
 
 export default function DashboardPage() {
-  const { user, cases, contracts, customers, certificates, oneOffs } = useApp();
+  const { user, cases, contracts, customers, certificates, oneOffs, profiles } = useApp();
 
   // --- Calculations ---
   const activeCases = cases.filter((c) => c.status === 'Open' || c.status === 'In Progress');
   const criticalCases = activeCases.filter((c) => c.severity === 'Critical');
   const activeContractsCount = contracts.filter((c) => c.status === 'Active').length;
   const totalCustomers = customers.length;
+  
+  // CSAT Score Calculations
+  const feedbackCases = cases.filter((c) => typeof c.rating === 'number' && c.rating > 0);
+  const totalCSATCount = feedbackCases.length;
+  const averageCSAT = totalCSATCount > 0
+    ? parseFloat((feedbackCases.reduce((sum, curr) => sum + (curr.rating || 0), 0) / totalCSATCount).toFixed(2))
+    : 0;
 
   // Revenue/financial calculations
   const totalContractRevenue = contracts.reduce((acc, curr) => acc + (curr.status === 'Active' ? curr.value : 0), 0);
@@ -106,6 +115,8 @@ export default function DashboardPage() {
         const colors: Record<string, string> = {
           Open: 'blue',
           'In Progress': 'processing',
+          'Awaiting Customer': 'warning',
+          'Awaiting Vendor': 'cyan',
           Resolved: 'success',
           Closed: 'default',
         };
@@ -178,13 +189,14 @@ export default function DashboardPage() {
         <Col xs={24} sm={12} lg={6}>
           <Card bordered={false} hoverable style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
-              title={<Text type="secondary" style={{ fontSize: 13 }}>Kayıtlı Müşteri Sayısı</Text>}
-              value={totalCustomers}
-              prefix={<TeamOutlined style={{ color: '#8b5cf6', marginRight: 8 }} />}
+              title={<Text type="secondary" style={{ fontSize: 13 }}>Müşteri Memnuniyeti (CSAT)</Text>}
+              value={totalCSATCount > 0 ? averageCSAT : 'Puan Yok'}
+              suffix={totalCSATCount > 0 ? '/ 5.0' : ''}
+              prefix={<TrophyOutlined style={{ color: '#f59e0b', marginRight: 8 }} />}
               valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>Finansal hacimli firmalar</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>{totalCSATCount} değerlendirme yapıldı</Text>
             </div>
           </Card>
         </Col>
@@ -250,6 +262,52 @@ export default function DashboardPage() {
                   Kapatılan taleplerin sözleşme limitlerine uygunluk oranı
                 </Text>
               </div>
+            </Card>
+
+            {/* CSAT Leaderboard Card */}
+            <Card
+              bordered={false}
+              title={
+                <Space>
+                  <TrophyOutlined style={{ color: '#f59e0b' }} />
+                  <span>En Yüksek CSAT Dereceleri</span>
+                </Space>
+              }
+              style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+            >
+              <List
+                size="small"
+                dataSource={profiles
+                  .filter((p) => typeof p.average_csat === 'number' && p.average_csat > 0)
+                  .sort((a, b) => (b.average_csat || 0) - (a.average_csat || 0))
+                  .slice(0, 3)}
+                locale={{ emptyText: 'Henüz müşteri memnuniyet puanı girilmemiş.' }}
+                renderItem={(item, index) => (
+                  <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <Space>
+                        <Badge
+                          count={index + 1}
+                          style={{
+                            backgroundColor: index === 0 ? '#f59e0b' : index === 1 ? '#cbd5e1' : '#b45309',
+                            color: '#fff',
+                            fontWeight: 'bold',
+                            transform: 'scale(0.85)'
+                          }}
+                        />
+                        <Text strong style={{ fontSize: 13, marginLeft: 4 }}>{item.full_name}</Text>
+                        <Tag color="geekblue" style={{ fontSize: 9, padding: '0 4px', margin: 0 }}>{item.role}</Tag>
+                      </Space>
+                      <Space size={4}>
+                        <Rate disabled defaultValue={item.average_csat} style={{ fontSize: 10 }} />
+                        <Text strong style={{ color: '#002b49', fontSize: 12 }}>
+                          {item.average_csat}
+                        </Text>
+                      </Space>
+                    </div>
+                  </List.Item>
+                )}
+              />
             </Card>
 
             {/* Certificate Tracker Card */}

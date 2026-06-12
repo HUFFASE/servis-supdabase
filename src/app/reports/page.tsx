@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation';
 const { Title, Text, Paragraph } = Typography;
 
 export default function ReportsPage() {
-  const { user, cases, contracts, customers, oneOffs, profiles } = useApp();
+  const { user, cases, contracts, customers, oneOffs, profiles, timesheets } = useApp();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'general' | 'engineers' | 'finance'>('general');
 
@@ -89,6 +89,19 @@ export default function ReportsPage() {
   const totalOneOffRevenue = oneOffs.reduce((acc, curr) => acc + (curr.status === 'Completed' ? curr.amount : 0), 0);
   const totalInPerformanceOneOff = oneOffs.reduce((acc, curr) => acc + (curr.status === 'In Progress' ? curr.amount : 0), 0);
 
+  // Advanced direct labor cost and gross margins calculations
+  const getTimesheetLaborCost = (ts: any) => {
+    const prof = profiles.find((p) => p.id === ts.profile_id);
+    const hourlyCost = prof?.hourly_cost || 50;
+    return Number(ts.hours_spent) * hourlyCost;
+  };
+
+  const approvedTimesheets = timesheets?.filter((t) => t.status === 'Approved') || [];
+  const totalLaborCost = approvedTimesheets.reduce((acc, curr) => acc + getTimesheetLaborCost(curr), 0);
+  const totalRevenue = totalContractRevenue + totalOneOffRevenue;
+  const totalGrossProfit = totalRevenue - totalLaborCost;
+  const totalMarginPercentage = totalRevenue > 0 ? Math.round((totalGrossProfit / totalRevenue) * 100) : 100;
+
   // Financial breakdown by customer
   const customerFinancials = customers.map((c) => {
     const customerContracts = contracts.filter((con) => con.customer_id === c.id && con.status === 'Active');
@@ -101,12 +114,31 @@ export default function ReportsPage() {
 
     const totalSum = contractSum + completedOneOffSum;
 
+    // Per-customer labor cost calculation
+    const customerLaborCost = approvedTimesheets.reduce((acc, ts) => {
+      let match = false;
+      if (ts.case_id) {
+        const cs = cases.find((caseItem) => caseItem.id === ts.case_id);
+        if (cs && cs.customer_id === c.id) match = true;
+      } else if (ts.oneoff_id) {
+        const o = oneOffs.find((oItem) => oItem.id === ts.oneoff_id);
+        if (o && o.customer_id === c.id) match = true;
+      }
+      return match ? acc + getTimesheetLaborCost(ts) : acc;
+    }, 0);
+
+    const customerNetProfit = totalSum - customerLaborCost;
+    const customerMargin = totalSum > 0 ? Math.round((customerNetProfit / totalSum) * 100) : 100;
+
     return {
       customer: c,
       contractSum,
       completedOneOffSum,
       inProgressOneOffSum,
-      totalSum
+      totalSum,
+      customerLaborCost,
+      customerNetProfit,
+      customerMargin
     };
   }).sort((a, b) => b.totalSum - a.totalSum);
 
@@ -307,6 +339,13 @@ export default function ReportsPage() {
               const workloadColor = item.activeCount >= 3 ? '#ef4444' : item.activeCount >= 1 ? '#f59e0b' : '#10b981';
               const isOverloaded = item.activeCount >= 3;
 
+              // Calculate dynamic utilization/billability
+              const userTs = approvedTimesheets.filter((t) => t.profile_id === item.profile.id);
+              const totalHours = userTs.reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+              const billableHours = userTs.filter((t) => t.is_billable).reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+              const billablePercentage = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+              const fteColor = billablePercentage >= 75 ? '#10b981' : billablePercentage >= 40 ? '#f59e0b' : '#ef4444';
+
               return (
                 <Col xs={24} sm={12} lg={6} key={item.profile.id}>
                   <Card
@@ -355,6 +394,20 @@ export default function ReportsPage() {
                         percent={Math.min(100, item.activeCount * 25)}
                         showInfo={false}
                         strokeColor={workloadColor}
+                        trailColor="#e2e8f0"
+                        style={{ margin: '0 0 10px 0' }}
+                      />
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ fontSize: 11 }} type="secondary">Verimlilik Oranı (FTE)</Text>
+                        <Text style={{ fontSize: 11, fontWeight: 'bold', color: fteColor }}>
+                          %{billablePercentage}
+                        </Text>
+                      </div>
+                      <Progress
+                        percent={billablePercentage}
+                        showInfo={false}
+                        strokeColor={fteColor}
                         trailColor="#e2e8f0"
                         style={{ margin: 0 }}
                       />
@@ -424,6 +477,36 @@ export default function ReportsPage() {
                   render: (count: number) => <Text>{count} Çağrı</Text>
                 },
                 {
+                  title: 'Verimlilik Oranı (FTE)',
+                  key: 'billability',
+                  sorter: (a, b) => {
+                    const getBillability = (profileId: string) => {
+                      const userTs = approvedTimesheets.filter((t) => t.profile_id === profileId);
+                      const total = userTs.reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+                      const billable = userTs.filter((t) => t.is_billable).reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+                      return total > 0 ? (billable / total) * 100 : 0;
+                    };
+                    return getBillability(a.profile.id) - getBillability(b.profile.id);
+                  },
+                  render: (_, record) => {
+                    const userTs = approvedTimesheets.filter((t) => t.profile_id === record.profile.id);
+                    const total = userTs.reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+                    const billable = userTs.filter((t) => t.is_billable).reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+                    const percent = total > 0 ? Math.round((billable / total) * 100) : 0;
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: 120 }}>
+                        <Progress 
+                          percent={percent} 
+                          size="small" 
+                          showInfo={false} 
+                          strokeColor={percent >= 75 ? '#10b981' : percent >= 40 ? '#f59e0b' : '#ef4444'} 
+                        />
+                        <Text strong style={{ fontSize: 11 }}>%{percent}</Text>
+                      </div>
+                    );
+                  }
+                },
+                {
                   title: 'Durum Skoru',
                   key: 'status',
                   render: (_, record) => {
@@ -446,48 +529,63 @@ export default function ReportsPage() {
       {activeTab === 'finance' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Revenue Breakdown statistics */}
-          <Row gutter={[20, 20]}>
-            <Col xs={24} md={8}>
+          <Row gutter={[20, 20]} style={{ marginBottom: 8 }}>
+            <Col xs={24} sm={12} lg={6}>
               <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
-                  title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Destek Sözleşmeleri Hacmi</Text>}
-                  value={totalContractRevenue}
-                  valueStyle={{ color: '#10b981', fontWeight: 'bold' }}
-                  prefix={<DollarOutlined />}
-                  formatter={(value) => `$${Number(value).toLocaleString()}`}
-                />
-                <div style={{ marginTop: 8 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>Yıllık yinelenen aktif SLA gelirleri</Text>
-                </div>
-              </Card>
-            </Col>
-
-            <Col xs={24} md={8}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
-                <Statistic
-                  title={<Text type="secondary" style={{ fontSize: 13 }}>Tamamlanan Proje Hacmi (One-Off)</Text>}
-                  value={totalOneOffRevenue}
+                  title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Operasyonel Gelir</Text>}
+                  value={totalRevenue}
                   valueStyle={{ color: '#0ea5e9', fontWeight: 'bold' }}
                   prefix={<DollarOutlined />}
                   formatter={(value) => `$${Number(value).toLocaleString()}`}
                 />
                 <div style={{ marginTop: 8 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>Başarıyla faturalandırılmış proje bedelleri</Text>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Aktif sözleşme + tamamlanan projeler</Text>
                 </div>
               </Card>
             </Col>
 
-            <Col xs={24} md={8}>
+            <Col xs={24} sm={12} lg={6}>
               <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
-                  title={<Text type="secondary" style={{ fontSize: 13 }}>Devam Eden Proje Hacmi (In Progress)</Text>}
-                  value={totalInPerformanceOneOff}
-                  valueStyle={{ color: '#f59e0b', fontWeight: 'bold' }}
-                  prefix={<DollarOutlined />}
+                  title={<Text type="secondary" style={{ fontSize: 13 }}>İş Gücü Maliyeti (COGS)</Text>}
+                  value={totalLaborCost}
+                  valueStyle={{ color: '#ef4444', fontWeight: 'bold' }}
+                  prefix={<ClockCircleOutlined />}
                   formatter={(value) => `$${Number(value).toLocaleString()}`}
                 />
                 <div style={{ marginTop: 8 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>Yürütme aşamasındaki tahmini proje tutarları</Text>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Onaylı eforların labor maliyet toplamı</Text>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+                <Statistic
+                  title={<Text type="secondary" style={{ fontSize: 13 }}>Brüt Operasyonel Kâr</Text>}
+                  value={totalGrossProfit}
+                  valueStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                  prefix={<RiseOutlined />}
+                  formatter={(value) => `$${Number(value).toLocaleString()}`}
+                />
+                <div style={{ marginTop: 8 }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Gelir ile iş gücü giderleri farkı</Text>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} sm={12} lg={6}>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+                <Statistic
+                  title={<Text type="secondary" style={{ fontSize: 13 }}>Operasyonel Kâr Marjı</Text>}
+                  value={totalMarginPercentage}
+                  valueStyle={{ color: totalMarginPercentage >= 50 ? '#10b981' : totalMarginPercentage >= 20 ? '#f59e0b' : '#ef4444', fontWeight: 'bold' }}
+                  prefix={<CrownOutlined />}
+                  formatter={(value) => `%${value}`}
+                />
+                <div style={{ marginTop: 8 }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>Toplam kârın ciroya yüzdesel oranı</Text>
                 </div>
               </Card>
             </Col>
@@ -518,53 +616,66 @@ export default function ReportsPage() {
                   render: (text: string) => <Text strong style={{ color: '#0f172a' }}>{text}</Text>,
                 },
                 {
-                  title: 'Sektör',
-                  dataIndex: ['customer', 'industry'],
-                  key: 'industry',
-                  render: (industry: string) => <Tag>{industry}</Tag>,
-                },
-                {
-                  title: 'Aktif Sözleşmeler',
-                  dataIndex: 'contractSum',
-                  key: 'contractSum',
-                  sorter: (a, b) => a.contractSum - b.contractSum,
-                  render: (val: number) => (
-                    <Text strong style={{ color: val > 0 ? '#10b981' : '#64748b' }}>
-                      {val > 0 ? `$${val.toLocaleString()}` : '$0'}
-                    </Text>
-                  ),
-                },
-                {
-                  title: 'Biten Projeler',
-                  dataIndex: 'completedOneOffSum',
-                  key: 'completedOneOffSum',
-                  sorter: (a, b) => a.completedOneOffSum - b.completedOneOffSum,
-                  render: (val: number) => (
-                    <Text style={{ color: val > 0 ? '#0ea5e9' : '#64748b' }}>
-                      {val > 0 ? `$${val.toLocaleString()}` : '$0'}
-                    </Text>
-                  ),
-                },
-                {
-                  title: 'Devam Eden Projeler',
-                  dataIndex: 'inProgressOneOffSum',
-                  key: 'inProgressOneOffSum',
-                  render: (val: number) => (
-                    <Text style={{ color: val > 0 ? '#f59e0b' : '#64748b', fontSize: 12 }}>
-                      {val > 0 ? `$${val.toLocaleString()}` : '$0'}
-                    </Text>
-                  ),
-                },
-                {
-                  title: 'Toplam Kazanılan Değer (Sözleşme + Biten)',
+                  title: 'Toplam Gelir',
                   dataIndex: 'totalSum',
                   key: 'totalSum',
                   sorter: (a, b) => a.totalSum - b.totalSum,
                   render: (val: number) => (
-                    <Text strong style={{ color: '#0f172a', fontSize: 14 }}>
+                    <Text strong style={{ color: '#0f172a' }}>
                       ${val.toLocaleString()}
                     </Text>
                   ),
+                },
+                {
+                  title: 'Operasyonel Gider (COGS)',
+                  dataIndex: 'customerLaborCost',
+                  key: 'customerLaborCost',
+                  sorter: (a, b) => a.customerLaborCost - b.customerLaborCost,
+                  render: (val: number) => (
+                    <Text style={{ color: val > 0 ? '#ef4444' : '#64748b' }}>
+                      {val > 0 ? `$${val.toLocaleString()}` : '$0'}
+                    </Text>
+                  ),
+                },
+                {
+                  title: 'Net Brüt Kâr',
+                  dataIndex: 'customerNetProfit',
+                  key: 'customerNetProfit',
+                  sorter: (a, b) => a.customerNetProfit - b.customerNetProfit,
+                  render: (val: number) => (
+                    <Text strong style={{ color: val >= 0 ? '#10b981' : '#ef4444' }}>
+                      {val >= 0 ? `$${val.toLocaleString()}` : `-$${Math.abs(val).toLocaleString()}`}
+                    </Text>
+                  ),
+                },
+                {
+                  title: 'Kâr Marjı',
+                  key: 'customerMargin',
+                  sorter: (a, b) => a.customerMargin - b.customerMargin,
+                  render: (_, record) => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: 120 }}>
+                      <Progress 
+                        percent={Math.max(0, record.customerMargin)} 
+                        size="small" 
+                        showInfo={false} 
+                        strokeColor={record.customerMargin >= 50 ? '#10b981' : record.customerMargin >= 20 ? '#f59e0b' : '#ef4444'} 
+                      />
+                      <Text strong style={{ fontSize: 11 }}>%{record.customerMargin}</Text>
+                    </div>
+                  )
+                },
+                {
+                  title: 'Finansal Sağlık',
+                  key: 'health',
+                  render: (_, record) => {
+                    if (record.customerMargin >= 50) {
+                      return <Tag color="success" style={{ fontWeight: 600 }}>YÜKSEK KÂRLI</Tag>;
+                    }
+                    if (record.customerMargin >= 20) {
+                      return <Tag color="warning" style={{ fontWeight: 600 }}>NORMAL MARJ</Tag>;
+                    }
+                    return <Tag color="error" style={{ fontWeight: 600 }}>RİSKLİ / BÜTÇE AŞIMI</Tag>;
+                  }
                 },
                 {
                   title: 'Gelir Katkı Oranı',

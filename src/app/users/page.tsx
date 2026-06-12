@@ -41,29 +41,44 @@ export default function UsersPage() {
     setSelectedProfile(profile);
     form.setFieldsValue({
       full_name: profile.full_name,
+      email: profile.email,
       role: profile.role,
       password: profile.password || '123456',
+      hourly_cost: profile.hourly_cost || 50,
     });
     setDrawerVisible(true);
   };
 
-  const onSave = (values: any) => {
+  const onSave = async (values: any) => {
     if (selectedProfile) {
-      updateProfile(selectedProfile.id, values.full_name, values.role, values.password);
-      message.success('Kullanıcı profili başarıyla güncellendi.');
-      setDrawerVisible(false);
-      
-      // If the currently displayed detail modal is for this profile, update it
-      if (detailProfile && detailProfile.id === selectedProfile.id) {
-        setDetailProfile({
-          ...detailProfile,
-          full_name: values.full_name,
-          role: values.role,
-          password: values.password
-        });
+      try {
+        await updateProfile(
+          selectedProfile.id, 
+          values.full_name, 
+          values.role, 
+          values.password, 
+          values.hourly_cost ? Number(values.hourly_cost) : undefined,
+          values.email
+        );
+        message.success('Kullanıcı profili başarıyla güncellendi.');
+        setDrawerVisible(false);
+        
+        // If the currently displayed detail modal is for this profile, update it
+        if (detailProfile && detailProfile.id === selectedProfile.id) {
+          setDetailProfile({
+            ...detailProfile,
+            full_name: values.full_name,
+            email: values.email,
+            role: values.role,
+            password: values.password,
+            hourly_cost: values.hourly_cost ? Number(values.hourly_cost) : detailProfile.hourly_cost
+          });
+        }
+        
+        setSelectedProfile(null);
+      } catch (err) {
+        console.error('Error in onSave UI handler:', err);
       }
-      
-      setSelectedProfile(null);
     }
   };
 
@@ -463,6 +478,16 @@ export default function UsersPage() {
               <Input />
             </Form.Item>
             <Form.Item
+              name="email"
+              label="E-posta Adresi"
+              rules={[
+                { required: true, message: 'Lütfen e-posta adresi girin!' },
+                { type: 'email', message: 'Geçersiz e-posta adresi!' }
+              ]}
+            >
+              <Input disabled={user?.role !== 'Direktör' && selectedProfile.id !== user?.id} />
+            </Form.Item>
+            <Form.Item
               name="role"
               label="Yetki Rolü"
               rules={[{ required: true }]}
@@ -477,6 +502,15 @@ export default function UsersPage() {
                 ]}
               />
             </Form.Item>
+            {(user?.role === 'Direktör' || user?.role === 'Müdür') && (
+              <Form.Item
+                name="hourly_cost"
+                label="Saatlik İş Gücü Maliyeti ($)"
+                rules={[{ required: true, message: 'Lütfen saatlik maliyet girin!' }]}
+              >
+                <Input type="number" min={1} placeholder="Örn: 50" style={{ borderRadius: 6 }} />
+              </Form.Item>
+            )}
             {(selectedProfile.id === user?.id || user?.role === 'Direktör') && (
               <Form.Item
                 name="password"

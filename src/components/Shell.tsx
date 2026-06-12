@@ -17,7 +17,9 @@ import {
   LogoutOutlined,
   SettingOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined
+  MenuFoldOutlined,
+  ClockCircleOutlined,
+  BookOutlined
 } from '@ant-design/icons';
 import { useApp } from '@/context/AppContext';
 import { useRouter, usePathname } from 'next/navigation';
@@ -27,10 +29,51 @@ const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
 
 export default function Shell({ children }: { children: React.ReactNode }) {
-  const { user, logout, notifications, markNotificationsAsRead } = useApp();
+  const { user, logout, notifications, markNotificationsAsRead, markNotificationAsRead, timesheets } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  const handleNotificationClick = async (item: any) => {
+    await markNotificationAsRead(item.id);
+    const title = item.title.toLowerCase();
+    const message = item.message.toLowerCase();
+    if (title.includes('sertifika') || message.includes('sertifika')) {
+      router.push('/certificates');
+    } else if (
+      title.includes('vaka') || 
+      title.includes('destek') || 
+      message.includes('vaka') || 
+      message.includes('destek') || 
+      title.includes('sla') || 
+      message.includes('sla') || 
+      title.includes('talep') || 
+      message.includes('talep')
+    ) {
+      router.push('/cases');
+    } else if (
+      title.includes('timesheet') || 
+      title.includes('efor') || 
+      message.includes('timesheet') || 
+      message.includes('efor') || 
+      title.includes('zaman') || 
+      message.includes('zaman')
+    ) {
+      router.push('/timesheets');
+    } else if (
+      title.includes('müşteri') || 
+      title.includes('geribildirim') || 
+      title.includes('csat') || 
+      message.includes('csat') || 
+      message.includes('geribildirim')
+    ) {
+      router.push('/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
+  const unreadNotifications = notifications.filter((n) => !n.read);
 
   // If we are on the login page or not logged in, render without the shell
   if (pathname === '/login' || !user) {
@@ -84,6 +127,43 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       icon: <CustomerServiceOutlined />,
       label: <Link href="/cases">Destek Talepleri (Cases)</Link>,
     },
+    {
+      key: '/timesheets',
+      icon: <ClockCircleOutlined />,
+      label: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Link href="/timesheets">Zaman Takibi</Link>
+          {(user.role === 'Direktör' || user.role === 'Müdür') && (
+            <Badge
+              count={timesheets.filter((t) => t.status === 'Submitted').length}
+              size="small"
+              style={{ backgroundColor: '#f59e0b', color: '#fff', transform: 'scale(0.85)' }}
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      key: '/knowledge',
+      icon: <BookOutlined />,
+      label: <Link href="/knowledge">Bilgi Bankası</Link>,
+    },
+    {
+      key: '/notifications',
+      icon: <BellOutlined />,
+      label: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <Link href="/notifications">Bildirimler</Link>
+          {unreadNotifications.length > 0 && (
+            <Badge
+              count={unreadNotifications.length}
+              size="small"
+              style={{ backgroundColor: '#ef4444', color: '#fff', transform: 'scale(0.85)' }}
+            />
+          )}
+        </div>
+      ),
+    },
   ];
 
   // RBAC: Direktör & Müdür see Reports
@@ -94,8 +174,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       label: <Link href="/reports">Raporlar & Analiz</Link>,
     });
   }
-
-  const unreadNotifications = notifications.filter((n) => !n.read);
 
   // Notifications Popover Content
   const notificationContent = (
@@ -111,18 +189,22 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <Divider style={{ margin: '8px 0' }} />
       <List
         size="small"
-        dataSource={notifications.slice(0, 5)}
+        dataSource={unreadNotifications.slice(0, 5)}
         locale={{ emptyText: 'Yeni bildirim yok' }}
         renderItem={(item) => (
           <List.Item
             key={item.id}
+            onClick={() => handleNotificationClick(item)}
             style={{
-              padding: '10px 4px',
-              backgroundColor: item.read ? 'transparent' : 'rgba(14, 165, 233, 0.05)',
-              borderRadius: 4,
-              marginBottom: 4,
-              borderBottom: '1px solid #f0f0f0'
+              padding: '10px 8px',
+              backgroundColor: 'rgba(14, 165, 233, 0.04)',
+              borderRadius: 6,
+              marginBottom: 6,
+              borderBottom: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease-in-out'
             }}
+            className="notification-item-hover"
           >
             <List.Item.Meta
               title={
@@ -134,7 +216,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                       borderRadius: '50%',
                       backgroundColor:
                         item.severity === 'error' ? '#ef4444' : item.severity === 'warning' ? '#f59e0b' : '#0ea5e9',
-                      display: item.read ? 'none' : 'inline-block'
+                      display: 'inline-block'
                     }}
                   />
                   <Text strong style={{ fontSize: 13 }}>
@@ -143,7 +225,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 </Space>
               }
               description={
-                <div>
+                <div style={{ paddingLeft: 12 }}>
                   <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                     {item.message}
                   </Text>
@@ -156,9 +238,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </List.Item>
         )}
       />
-      {notifications.length > 5 && (
-        <div style={{ textAlign: 'center', marginTop: 8 }}>
-          <Button type="link" size="small" onClick={() => router.push('/dashboard')}>
+      {notifications.length > 0 && (
+        <div style={{ textAlign: 'center', marginTop: 8, borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
+          <Button type="link" size="small" onClick={() => router.push('/notifications')} style={{ fontWeight: 500 }}>
             Tüm bildirimleri gör
           </Button>
         </div>

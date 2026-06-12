@@ -19,16 +19,16 @@ export default function LoginPage() {
     try {
       // Simulate quick login delay for realism
       await new Promise((resolve) => setTimeout(resolve, 800));
-      const success = await login(selectedRole);
+      const success = await login(selectedRole, values.email, values.password);
       
       if (success) {
         message.success({
-          content: `${selectedRole} rolüyle başarıyla giriş yapıldı!`,
+          content: `Başarıyla giriş yapıldı!`,
           duration: 3
         });
         router.replace('/dashboard');
       } else {
-        message.error('Giriş başarısız. Lütfen tekrar deneyin.');
+        message.error('Giriş başarısız. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.');
       }
     } catch (err) {
       console.error(err);
