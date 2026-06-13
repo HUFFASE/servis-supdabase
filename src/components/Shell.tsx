@@ -19,7 +19,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   ClockCircleOutlined,
-  BookOutlined
+  BookOutlined,
+  ToolOutlined
 } from '@ant-design/icons';
 import { useApp } from '@/context/AppContext';
 import { useRouter, usePathname } from 'next/navigation';
@@ -121,6 +122,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       key: '/oneoffs',
       icon: <ProjectOutlined />,
       label: <Link href="/oneoffs">Proje / Tek Seferlik</Link>,
+    },
+    {
+      key: '/spare-parts',
+      icon: <ToolOutlined />,
+      label: <Link href="/spare-parts">Yedek Parçalar</Link>,
     },
     {
       key: '/cases',

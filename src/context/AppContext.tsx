@@ -161,6 +161,24 @@ export interface CaseFeedback {
   created_at: string;
 }
 
+export interface SparePart {
+  id: string;
+  name: string;
+  part_code?: string;
+  serial_number?: string;
+  brand_id?: string | null;
+  brand_name?: string;
+  project_id?: string | null;
+  project_name?: string;
+  is_pool: boolean;
+  stock_in_date: string;
+  stock_out_date?: string | null;
+  status: 'InStock' | 'Out';
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface AppContextType {
   // Auth state
   user: Profile | null;
@@ -181,6 +199,7 @@ interface AppContextType {
   timesheets: Timesheet[];
   knowledgeArticles: KnowledgeArticle[];
   caseFeedbacks: CaseFeedback[];
+  spareParts: SparePart[];
 
   // Database operations
   updateProfile: (id: string, fullName: string, role: UserRole, password?: string, hourlyCost?: number, email?: string) => Promise<void>;
@@ -228,6 +247,11 @@ interface AppContextType {
   voteHelpful: (id: string) => Promise<void>;
   addCaseFeedback: (feedback: Omit<CaseFeedback, 'id' | 'created_at'>) => Promise<void>;
   deleteCaseFeedback: (id: string) => Promise<void>;
+
+  addSparePart: (sparePart: Omit<SparePart, 'id' | 'status'>) => Promise<void>;
+  updateSparePart: (id: string, sparePart: Partial<SparePart>) => Promise<void>;
+  deleteSparePart: (id: string) => Promise<void>;
+
   markNotificationsAsRead: () => void;
   markNotificationAsRead: (id: string) => Promise<void>;
 }
@@ -420,6 +444,13 @@ const initialCaseFeedbacks: CaseFeedback[] = [
   { id: 'cf1', case_id: 't3', rating: 5, comments: 'Can Demir yerel Active Directory ve portal eşitleme problemlerimizi çok hızlı ve profesyonelce çözdü. Çok teşekkürler!', created_at: new Date(Date.now() - 3600000 * 20).toISOString() }
 ];
 
+const initialSpareParts: SparePart[] = [
+  { id: 'sp1', name: 'Cisco Nexus SFP-10G-SR Modülü', part_code: 'SFP-10G-SR', serial_number: 'FDO24120ABC', brand_id: 'b1', project_id: 'o1', is_pool: false, stock_in_date: '2026-01-15', stock_out_date: null, status: 'InStock', notes: 'Turkcell Kartal migrasyonu için yedek optik modül.' },
+  { id: 'sp2', name: 'Fortinet FortiGate Güç Kaynağı Ünitesi', part_code: 'FG-PSU-460', serial_number: 'SN-PSU-7781', brand_id: 'b2', project_id: null, is_pool: true, stock_in_date: '2025-08-10', stock_out_date: null, status: 'InStock', notes: 'Havuz yedeği - acil arıza durumları için.' },
+  { id: 'sp3', name: 'VMware Sunucu RAID Denetleyici Kartı', part_code: 'RAID-9460-16i', serial_number: 'SV-RC-55012', brand_id: 'b4', project_id: null, is_pool: true, stock_in_date: '2025-03-01', stock_out_date: '2026-04-20', status: 'Out', notes: 'Eczacıbaşı sahasında arızalı kart yerine kullanıldı.' },
+  { id: 'sp4', name: 'Microsoft Surface Yedek Batarya', part_code: 'SRF-BAT-65W', serial_number: 'MS-BAT-90233', brand_id: 'b3', project_id: 'o2', is_pool: false, stock_in_date: '2026-05-05', stock_out_date: null, status: 'InStock', notes: 'Garanti SD-WAN projesi saha ekibi için.' },
+];
+
 // --- Context Provider Component ---
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -440,6 +471,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [timesheets, setTimesheets] = useState<Timesheet[]>(initialTimesheets);
   const [knowledgeArticles, setKnowledgeArticles] = useState<KnowledgeArticle[]>(initialKnowledgeArticles);
   const [caseFeedbacks, setCaseFeedbacks] = useState<CaseFeedback[]>(initialCaseFeedbacks);
+  const [spareParts, setSpareParts] = useState<SparePart[]>(initialSpareParts);
 
   // Fetch dynamic data from Supabase
   const fetchInitialData = async () => {
@@ -459,6 +491,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         { data: timesheetsData },
         { data: knowledgeArticlesData },
         { data: feedbacksData },
+        { data: sparePartsData },
       ] = await Promise.all([
         supabase.from('profiles').select('*'),
         supabase.from('brands').select('*'),
@@ -474,6 +507,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         supabase.from('timesheets').select('*'),
         supabase.from('knowledge_articles').select('*'),
         supabase.from('case_feedbacks').select('*'),
+        supabase.from('spare_parts').select('*'),
       ]);
 
       if (profilesData) setProfiles(profilesData as Profile[]);
@@ -487,6 +521,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (timesheetsData) setTimesheets(timesheetsData as Timesheet[]);
       if (knowledgeArticlesData) setKnowledgeArticles(knowledgeArticlesData as KnowledgeArticle[]);
       if (feedbacksData) setCaseFeedbacks(feedbacksData as CaseFeedback[]);
+      if (sparePartsData) setSpareParts(sparePartsData as SparePart[]);
 
       if (casesData) {
         const mappedCases = (casesData as Case[]).map((c) => ({
@@ -859,6 +894,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     await supabase.from('oneoffs').delete().eq('id', id);
   };
 
+  const addSparePart = async (sparePart: Omit<SparePart, 'id' | 'status'>) => {
+    const status: SparePart['status'] = sparePart.stock_out_date ? 'Out' : 'InStock';
+    const newSparePart = {
+      ...sparePart,
+      id: `sp_${Date.now()}`,
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    await supabase.from('spare_parts').insert(newSparePart);
+  };
+
+  const updateSparePart = async (id: string, sparePartData: Partial<SparePart>) => {
+    const original = spareParts.find((sp) => sp.id === id);
+    const merged = { ...original, ...sparePartData };
+    const status: SparePart['status'] = merged.stock_out_date ? 'Out' : 'InStock';
+    await supabase
+      .from('spare_parts')
+      .update({ ...sparePartData, status, updated_at: new Date().toISOString() })
+      .eq('id', id);
+  };
+
+  const deleteSparePart = async (id: string) => {
+    await supabase.from('spare_parts').delete().eq('id', id);
+  };
+
   const addCase = async (caseData: Omit<Case, 'id' | 'created_at' | 'sla_countdown_hours'>) => {
     let slaVal = 24.0;
     if (caseData.severity === 'Critical') slaVal = 2.0;
@@ -1150,6 +1210,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   });
 
+  const populatedSpareParts = spareParts.map((sp) => ({
+    ...sp,
+    brand_name: brands.find((b) => b.id === sp.brand_id)?.name || 'Genel',
+    project_name: oneOffs.find((o) => o.id === sp.project_id)?.name || undefined,
+  }));
+
   const populatedKnowledgeArticles = knowledgeArticles.map((ka) => {
     const brand = brands.find((b) => b.id === ka.brand_id);
     const service = services.find((s) => s.id === ka.service_id);
@@ -1182,6 +1248,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         timesheets: populatedTimesheets,
         knowledgeArticles: populatedKnowledgeArticles,
         caseFeedbacks,
+        spareParts: populatedSpareParts,
         updateProfile,
         addBrand,
         updateBrand,
@@ -1219,6 +1286,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         voteHelpful,
         addCaseFeedback,
         deleteCaseFeedback,
+        addSparePart,
+        updateSparePart,
+        deleteSparePart,
         markNotificationsAsRead,
         markNotificationAsRead
       }}
