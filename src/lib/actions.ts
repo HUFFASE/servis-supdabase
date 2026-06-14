@@ -1,6 +1,8 @@
 'use server';
 
 import { prisma } from './prisma';
+import bcrypt from 'bcryptjs';
+
 
 // Helper to convert Prisma Decimal to Number
 const toNum = (val: any): number => (val ? Number(val) : 0);
@@ -70,7 +72,11 @@ export async function getInitialData() {
   ]);
 
   const profiles = profilesRaw.map((p) => ({
-    ...p,
+    id: p.id,
+    full_name: p.full_name,
+    email: p.email,
+    role: p.role,
+    avatar_url: p.avatar_url,
     hourly_cost: toNum(p.hourly_cost),
     updated_at: toIsoStr(p.updated_at),
   }));
@@ -204,17 +210,49 @@ export async function updateProfileInDb(
 
   const prismaRole = roleMap[role] || 'Postsales';
 
+  const hashedPassword = password ? bcrypt.hashSync(password, 10) : undefined;
+
   await prisma.profile.update({
     where: { id },
     data: {
       full_name: fullName,
       role: prismaRole,
-      ...(password !== undefined && { password }),
+      ...(hashedPassword !== undefined && { password: hashedPassword }),
       ...(hourlyCost !== undefined && { hourly_cost: hourlyCost }),
       ...(email !== undefined && { email }),
     },
   });
 }
+
+// Server-side login verification
+export async function verifyLogin(email: string, password: string) {
+  const profile = await prisma.profile.findUnique({
+    where: { email },
+  });
+
+  if (!profile) return null;
+
+  const isValid = bcrypt.compareSync(password, profile.password);
+  if (!isValid) return null;
+
+  const roleMap: Record<string, 'Direktör' | 'Müdür' | 'Presales' | 'Postsales'> = {
+    'Direktor': 'Direktör',
+    'Mudur': 'Müdür',
+    'Presales': 'Presales',
+    'Postsales': 'Postsales',
+  };
+
+  return {
+    id: profile.id,
+    full_name: profile.full_name,
+    avatar_url: profile.avatar_url || '',
+    role: roleMap[profile.role] || 'Postsales',
+    email: profile.email,
+    updated_at: profile.updated_at.toISOString(),
+    hourly_cost: Number(profile.hourly_cost),
+  };
+}
+
 
 // Brand Actions
 export async function addBrandInDb(brand: { name: string; logo_url?: string | null; description?: string | null }) {

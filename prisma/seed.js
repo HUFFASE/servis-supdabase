@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -23,10 +24,10 @@ async function main() {
 
   // 2. Profiles
   const profiles = [
-    { id: 'u1', full_name: 'Kemal Yılmaz', email: 'kemal@techservices.com', role: 'Direktor', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kemal', password: '123456', hourly_cost: 120.00 },
-    { id: 'u2', full_name: 'Ayşe Kaya', email: 'ayse@techservices.com', role: 'Mudur', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ayse', password: '123456', hourly_cost: 90.00 },
-    { id: 'u3', full_name: 'Can Demir', email: 'can@techservices.com', role: 'Presales', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Can', password: '123456', hourly_cost: 60.00 },
-    { id: 'u4', full_name: 'Elif Şahin', email: 'elif@techservices.com', role: 'Postsales', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Elif', password: '123456', hourly_cost: 45.00 },
+    { id: 'u1', full_name: 'Kemal Yılmaz', email: 'kemal@techservices.com', role: 'Direktor', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kemal', password: bcrypt.hashSync('123456', 10), hourly_cost: 120.00 },
+    { id: 'u2', full_name: 'Ayşe Kaya', email: 'ayse@techservices.com', role: 'Mudur', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Ayse', password: bcrypt.hashSync('123456', 10), hourly_cost: 90.00 },
+    { id: 'u3', full_name: 'Can Demir', email: 'can@techservices.com', role: 'Presales', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Can', password: bcrypt.hashSync('123456', 10), hourly_cost: 60.00 },
+    { id: 'u4', full_name: 'Elif Şahin', email: 'elif@techservices.com', role: 'Postsales', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Elif', password: bcrypt.hashSync('123456', 10), hourly_cost: 45.00 },
   ];
   for (const p of profiles) {
     await prisma.profile.create({ data: p });

@@ -598,12 +598,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const login = async (role: UserRole, email?: string, password?: string): Promise<boolean> => {
     // 1. Try real authentication with email and password first if provided
     if (email && password) {
-      const matched = profiles.find((p) => p.email === email && p.password === password);
-      if (matched) {
-        setUser(matched);
-        localStorage.setItem('psa_user', JSON.stringify(matched));
-        return true;
+      try {
+        const verifiedProfile = await actions.verifyLogin(email, password);
+        if (verifiedProfile) {
+          setUser(verifiedProfile as Profile);
+          localStorage.setItem('psa_user', JSON.stringify(verifiedProfile));
+          return true;
+        }
+      } catch (err) {
+        console.error('Error verifying login:', err);
       }
+      return false;
     }
 
     // 2. Fallback to role-based simulation quick login
