@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
+import * as actions from '@/lib/actions';
 import { message } from 'antd';
 
 // --- Type Definitions ---
@@ -204,38 +204,38 @@ interface AppContextType {
   // Database operations
   updateProfile: (id: string, fullName: string, role: UserRole, password?: string, hourlyCost?: number, email?: string) => Promise<void>;
   
-  addBrand: (brand: Omit<Brand, 'id'>) => void;
-  updateBrand: (id: string, brand: Partial<Brand>) => void;
-  deleteBrand: (id: string) => void;
+  addBrand: (brand: Omit<Brand, 'id'>) => Promise<void>;
+  updateBrand: (id: string, brand: Partial<Brand>) => Promise<void>;
+  deleteBrand: (id: string) => Promise<void>;
 
-  addService: (service: Omit<Service, 'id'>) => void;
-  updateService: (id: string, service: Partial<Service>) => void;
-  deleteService: (id: string) => void;
+  addService: (service: Omit<Service, 'id'>) => Promise<void>;
+  updateService: (id: string, service: Partial<Service>) => Promise<void>;
+  deleteService: (id: string) => Promise<void>;
 
-  addCertificateDefinition: (certDef: Omit<CertificateDefinition, 'id'>) => void;
-  updateCertificateDefinition: (id: string, certDef: Partial<CertificateDefinition>) => void;
-  deleteCertificateDefinition: (id: string) => void;
+  addCertificateDefinition: (certDef: Omit<CertificateDefinition, 'id'>) => Promise<void>;
+  updateCertificateDefinition: (id: string, certDef: Partial<CertificateDefinition>) => Promise<void>;
+  deleteCertificateDefinition: (id: string) => Promise<void>;
 
-  addCertificate: (cert: Omit<Certificate, 'id' | 'status'>) => void;
-  updateCertificate: (id: string, cert: Partial<Certificate>) => void;
-  deleteCertificate: (id: string) => void;
+  addCertificate: (cert: Omit<Certificate, 'id' | 'status'>) => Promise<void>;
+  updateCertificate: (id: string, cert: Partial<Certificate>) => Promise<void>;
+  deleteCertificate: (id: string) => Promise<void>;
 
-  addCustomer: (customer: Omit<Customer, 'id'>) => void;
-  updateCustomer: (id: string, customer: Partial<Customer>) => void;
-  deleteCustomer: (id: string) => void;
+  addCustomer: (customer: Omit<Customer, 'id'>) => Promise<void>;
+  updateCustomer: (id: string, customer: Partial<Customer>) => Promise<void>;
+  deleteCustomer: (id: string) => Promise<void>;
 
-  addContract: (contract: Omit<Contract, 'id'>) => void;
-  updateContract: (id: string, contract: Partial<Contract>) => void;
-  deleteContract: (id: string) => void;
+  addContract: (contract: Omit<Contract, 'id'>) => Promise<void>;
+  updateContract: (id: string, contract: Partial<Contract>) => Promise<void>;
+  deleteContract: (id: string) => Promise<void>;
 
-  addOneOff: (oneOff: Omit<OneOff, 'id'>) => void;
-  updateOneOff: (id: string, oneOff: Partial<OneOff>) => void;
-  deleteOneOff: (id: string) => void;
+  addOneOff: (oneOff: Omit<OneOff, 'id'>) => Promise<void>;
+  updateOneOff: (id: string, oneOff: Partial<OneOff>) => Promise<void>;
+  deleteOneOff: (id: string) => Promise<void>;
 
-  addCase: (caseData: Omit<Case, 'id' | 'created_at' | 'sla_countdown_hours'>) => void;
-  updateCase: (id: string, caseData: Partial<Case>) => void;
-  addCaseComment: (id: string, text: string) => void;
-  deleteCase: (id: string) => void;
+  addCase: (caseData: Omit<Case, 'id' | 'created_at' | 'sla_countdown_hours'>) => Promise<void>;
+  updateCase: (id: string, caseData: Partial<Case>) => Promise<void>;
+  addCaseComment: (id: string, text: string) => Promise<void>;
+  deleteCase: (id: string) => Promise<void>;
   addTimesheet: (timesheet: Omit<Timesheet, 'id' | 'status' | 'created_at'>) => Promise<void>;
   updateTimesheet: (id: string, timesheet: Partial<Timesheet>) => Promise<void>;
   deleteTimesheet: (id: string) => Promise<void>;
@@ -252,13 +252,13 @@ interface AppContextType {
   updateSparePart: (id: string, sparePart: Partial<SparePart>) => Promise<void>;
   deleteSparePart: (id: string) => Promise<void>;
 
-  markNotificationsAsRead: () => void;
+  markNotificationsAsRead: () => Promise<void>;
   markNotificationAsRead: (id: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// --- Initial Mock Data ---
+// --- Initial Mock Data (Fallback) ---
 
 const initialProfiles: Profile[] = [
   { id: 'u1', full_name: 'Kemal Yılmaz', email: 'kemal@techservices.com', role: 'Direktör', avatar_url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Kemal', updated_at: new Date().toISOString(), password: '123456', hourly_cost: 120 },
@@ -457,7 +457,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Authentication State
   const [user, setUser] = useState<Profile | null>(null);
 
-  // Database Tables State (initialized from mock data or local storage if exists)
+  // Database Tables State
   const [profiles, setProfiles] = useState<Profile[]>(initialProfiles);
   const [brands, setBrands] = useState<Brand[]>(initialBrands);
   const [services, setServices] = useState<Service[]>(initialServices);
@@ -473,73 +473,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [caseFeedbacks, setCaseFeedbacks] = useState<CaseFeedback[]>(initialCaseFeedbacks);
   const [spareParts, setSpareParts] = useState<SparePart[]>(initialSpareParts);
 
-  // Fetch dynamic data from Supabase
+  // Fetch dynamic data from database via Server Actions
   const fetchInitialData = async () => {
     try {
-      const [
-        { data: profilesData },
-        { data: brandsData },
-        { data: servicesData },
-        { data: certDefsData },
-        { data: certsData },
-        { data: customersData },
-        { data: contractsData },
-        { data: oneoffsData },
-        { data: casesData },
-        { data: commentsData },
-        { data: notificationsData },
-        { data: timesheetsData },
-        { data: knowledgeArticlesData },
-        { data: feedbacksData },
-        { data: sparePartsData },
-      ] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('brands').select('*'),
-        supabase.from('services').select('*'),
-        supabase.from('certificate_definitions').select('*'),
-        supabase.from('certificates').select('*'),
-        supabase.from('customers').select('*'),
-        supabase.from('contracts').select('*'),
-        supabase.from('oneoffs').select('*'),
-        supabase.from('cases').select('*'),
-        supabase.from('case_comments').select('*'),
-        supabase.from('notifications').select('*'),
-        supabase.from('timesheets').select('*'),
-        supabase.from('knowledge_articles').select('*'),
-        supabase.from('case_feedbacks').select('*'),
-        supabase.from('spare_parts').select('*'),
-      ]);
-
-      if (profilesData) setProfiles(profilesData as Profile[]);
-      if (brandsData) setBrands(brandsData as Brand[]);
-      if (servicesData) setServices(servicesData as Service[]);
-      if (certDefsData) setCertificateDefinitions(certDefsData as CertificateDefinition[]);
-      if (certsData) setCertificates(certsData as Certificate[]);
-      if (customersData) setCustomers(customersData as Customer[]);
-      if (contractsData) setContracts(contractsData as Contract[]);
-      if (oneoffsData) setOneOffs(oneoffsData as OneOff[]);
-      if (timesheetsData) setTimesheets(timesheetsData as Timesheet[]);
-      if (knowledgeArticlesData) setKnowledgeArticles(knowledgeArticlesData as KnowledgeArticle[]);
-      if (feedbacksData) setCaseFeedbacks(feedbacksData as CaseFeedback[]);
-      if (sparePartsData) setSpareParts(sparePartsData as SparePart[]);
-
-      if (casesData) {
-        const mappedCases = (casesData as Case[]).map((c) => ({
-          ...c,
-          comments: (commentsData || [])
-            .filter((comment: any) => comment.case_id === c.id)
-            .map((comment: any) => ({
-              author: comment.author,
-              text: comment.text,
-              date: comment.date,
-            })),
-        }));
-        setCases(mappedCases);
-      }
-
-      if (notificationsData) setNotifications(notificationsData as AppNotification[]);
+      const data = await actions.getInitialData();
+      
+      setProfiles(data.profiles as Profile[]);
+      setBrands(data.brands as Brand[]);
+      setServices(data.services as Service[]);
+      setCertificateDefinitions(data.certificateDefinitions as CertificateDefinition[]);
+      setCertificates(data.certificates as Certificate[]);
+      setCustomers(data.customers as Customer[]);
+      setContracts(data.contracts as Contract[]);
+      setOneOffs(data.oneOffs as OneOff[]);
+      setCases(data.cases as any[]);
+      setNotifications(data.notifications as AppNotification[]);
+      setTimesheets(data.timesheets as Timesheet[]);
+      setSpareParts(data.spareParts as SparePart[]);
+      setCaseFeedbacks(data.caseFeedbacks as CaseFeedback[]);
+      setKnowledgeArticles(data.knowledgeArticles as KnowledgeArticle[]);
     } catch (error) {
-      console.error('Error fetching initial Supabase data:', error);
+      console.error('Error fetching initial database data:', error);
     }
   };
 
@@ -554,20 +508,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     fetchInitialData();
 
-    // Setup Supabase Realtime Channel
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public' },
-        () => {
-          fetchInitialData();
-        }
-      )
-      .subscribe();
+    // Client-side Polling: poll database updates every 10 seconds (fully database-agnostic realtime replacement)
+    const interval = setInterval(() => {
+      fetchInitialData();
+    }, 10000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -588,8 +535,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const nextVal = parseFloat((c.sla_countdown_hours - 0.05).toFixed(2));
             const finalVal = nextVal < 0 ? 0 : nextVal;
             
-            // Sync tick to Supabase periodically in background
-            supabase.from('cases').update({ sla_countdown_hours: finalVal }).eq('id', c.id);
+            // Sync tick to database in background
+            actions.updateCaseInDb(c.id, { sla_countdown_hours: finalVal });
             
             return { ...c, sla_countdown_hours: finalVal };
           }
@@ -608,45 +555,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA İhlali'));
               if (!exists) {
                 const newAlert = {
-                  id: `n_${Date.now()}_sla_red`,
                   title: `🔴 SLA İhlali! - ${c.customer_name || 'Müşteri'}`,
                   message: `"${c.title}" başlıklı talebin SLA süresi aşılmıştır! Bölüm Direktörü (Kemal Yılmaz) ve teknik operasyon ekibi alarma geçirildi.`,
-                  severity: 'error' as const,
-                  timestamp: new Date().toISOString(),
-                  read: false
+                  severity: 'error'
                 };
-                setNotifications((prev) => [newAlert, ...prev]);
-                supabase.from('notifications').insert(newAlert);
+                actions.addNotificationInDb(newAlert);
               }
             } else if (percentage <= 25) {
               // Orange Alert
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Kritik Seviye'));
               if (!exists) {
                 const newAlert = {
-                  id: `n_${Date.now()}_sla_orange`,
                   title: `🚨 SLA Kritik Seviye (%75) - ${c.customer_name || 'Müşteri'}`,
                   message: `"${c.title}" başlıklı talebin kalan SLA süresi %25'in altına inmiştir! Bölüm Müdürü (Ayşe Kaya) eskalasyon zincirine dahil edildi.`,
-                  severity: 'error' as const,
-                  timestamp: new Date().toISOString(),
-                  read: false
+                  severity: 'error'
                 };
-                setNotifications((prev) => [newAlert, ...prev]);
-                supabase.from('notifications').insert(newAlert);
+                actions.addNotificationInDb(newAlert);
               }
             } else if (percentage <= 50) {
               // Yellow Alert
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Uyarısı'));
               if (!exists) {
                 const newAlert = {
-                  id: `n_${Date.now()}_sla_yellow`,
                   title: `⚠️ SLA Uyarısı (%50) - ${c.customer_name || 'Müşteri'}`,
                   message: `"${c.title}" başlıklı vakanın SLA süresi %50'nin altına indi! Sorumlu mühendis eskalasyonu tetiklendi.`,
-                  severity: 'warning' as const,
-                  timestamp: new Date().toISOString(),
-                  read: false
+                  severity: 'warning'
                 };
-                setNotifications((prev) => [newAlert, ...prev]);
-                supabase.from('notifications').insert(newAlert);
+                actions.addNotificationInDb(newAlert);
               }
             }
           }
@@ -686,449 +621,256 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('psa_user');
   };
 
-  // DB CRUD Operations synced to Supabase
+  // DB CRUD Operations synced to Database via Server Actions
   const updateProfile = async (id: string, fullName: string, role: UserRole, password?: string, hourlyCost?: number, email?: string) => {
-    // 1. Prepare main profile data (columns GUARANTEED to exist in base schema.sql)
-    const updateData: any = { full_name: fullName, role, updated_at: new Date().toISOString() };
-    if (email !== undefined) {
-      updateData.email = email;
-    }
-
-    // Update local profiles state optimistically for instant UI updates
-    setProfiles((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const updated = { ...p, full_name: fullName, role, updated_at: updateData.updated_at };
-          if (hourlyCost !== undefined) updated.hourly_cost = hourlyCost;
-          if (password) updated.password = password;
-          if (email !== undefined) updated.email = email;
-          return updated;
-        }
-        return p;
-      })
-    );
-
-    // 2. Update main profile fields in database (Ad Soyad, E-posta, Yetki Rolü)
-    const { error: mainError } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', id);
-
-    if (mainError) {
-      console.error('Error updating main profile fields in Supabase:', {
-        message: mainError.message,
-        code: mainError.code,
-        details: mainError.details,
-        hint: mainError.hint,
-      });
-      message.error(`Profil bilgileri güncellenirken veritabanı hatası oluştu: ${mainError.message || 'Bilinmeyen hata'}`);
-      return;
-    }
-
-    // 3. Try to update hourly_cost in an isolated query (may fail if financials.sql was not run yet)
-    if (hourlyCost !== undefined) {
-      const { error: costError } = await supabase
-        .from('profiles')
-        .update({ hourly_cost: hourlyCost })
-        .eq('id', id);
-        
-      if (costError) {
-        console.warn('hourly_cost column does not exist in your Supabase schema yet. Run financials.sql migration in Supabase console!', costError);
+    try {
+      await actions.updateProfileInDb(id, fullName, role, password, hourlyCost, email);
+      
+      // Update local state if current logged user
+      if (user && user.id === id) {
+        const updatedUser = { ...user, full_name: fullName, role };
+        if (hourlyCost !== undefined) updatedUser.hourly_cost = hourlyCost;
+        if (email !== undefined) updatedUser.email = email;
+        setUser(updatedUser);
+        localStorage.setItem('psa_user', JSON.stringify(updatedUser));
       }
-    }
-
-    // 4. Try to update password in a separate, isolated query (may fail if add_password.sql was not run yet)
-    if (password !== undefined) {
-      const { error: passError } = await supabase
-        .from('profiles')
-        .update({ password })
-        .eq('id', id);
-        
-      if (passError) {
-        console.warn('Password column does not exist in your Supabase schema yet. Run add_password.sql migration in Supabase console!', passError);
-      }
-    }
-
-    // If current user, update state as well
-    if (user && user.id === id) {
-      const updatedUser = { ...user, full_name: fullName, role };
-      if (hourlyCost !== undefined) {
-        updatedUser.hourly_cost = hourlyCost;
-      }
-      if (email !== undefined) {
-        updatedUser.email = email;
-      }
-      setUser(updatedUser);
-      localStorage.setItem('psa_user', JSON.stringify(updatedUser));
+      
+      await fetchInitialData();
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      message.error(`Profil güncellenirken hata oluştu: ${err.message || 'Bilinmeyen hata'}`);
     }
   };
 
   const addBrand = async (brand: Omit<Brand, 'id'>) => {
-    const newBrand = { ...brand, id: `b_${Date.now()}` };
-    await supabase.from('brands').insert(newBrand);
+    await actions.addBrandInDb(brand);
+    await fetchInitialData();
   };
 
   const updateBrand = async (id: string, brandData: Partial<Brand>) => {
-    await supabase.from('brands').update(brandData).eq('id', id);
+    await actions.updateBrandInDb(id, brandData);
+    await fetchInitialData();
   };
 
   const deleteBrand = async (id: string) => {
-    await supabase.from('brands').delete().eq('id', id);
+    await actions.deleteBrandInDb(id);
+    await fetchInitialData();
   };
 
   const addService = async (service: Omit<Service, 'id'>) => {
-    const newService = { ...service, id: `s_${Date.now()}` };
-    await supabase.from('services').insert(newService);
+    await actions.addServiceInDb(service);
+    await fetchInitialData();
   };
 
   const updateService = async (id: string, serviceData: Partial<Service>) => {
-    await supabase.from('services').update(serviceData).eq('id', id);
+    await actions.updateServiceInDb(id, serviceData);
+    await fetchInitialData();
   };
 
   const deleteService = async (id: string) => {
-    await supabase.from('services').delete().eq('id', id);
+    await actions.deleteServiceInDb(id);
+    await fetchInitialData();
   };
 
   const addCertificate = async (cert: Omit<Certificate, 'id' | 'status'>) => {
-    const exp = new Date(cert.expiry_date);
-    const now = new Date();
-    const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 3600 * 24));
-    const status = daysLeft < 0 ? 'Expired' : daysLeft <= 30 ? 'Expiring' : 'Active';
-
-    const newCert = { ...cert, id: `c_${Date.now()}`, status };
-    await supabase.from('certificates').insert(newCert);
-
-    if (status !== 'Active') {
-      const p = profiles.find((p) => p.id === cert.profile_id);
-      const newNotification: AppNotification = {
-        id: `n_${Date.now()}_cert`,
-        title: status === 'Expired' ? 'Sertifika Süresi Doldu' : 'Sertifika Süresi Yaklaşıyor',
-        message: `${p?.full_name || 'Personel'} adına kayıtlı "${cert.name}" sertifikası ${status === 'Expired' ? 'geçersiz durumdadır' : 'yakında süresi dolacaktır'}!`,
-        severity: status === 'Expired' ? 'error' : 'warning',
-        timestamp: new Date().toISOString(),
-        read: false
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-      await supabase.from('notifications').insert(newNotification);
-    }
+    await actions.addCertificateInDb(cert);
+    await fetchInitialData();
   };
 
   const updateCertificate = async (id: string, certData: Partial<Certificate>) => {
-    const original = certificates.find((c) => c.id === id);
-    if (!original) return;
-
-    const merged = { ...original, ...certData };
-    if (certData.expiry_date) {
-      const exp = new Date(merged.expiry_date);
-      const now = new Date();
-      const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 3600 * 24));
-      merged.status = daysLeft < 0 ? 'Expired' : daysLeft <= 30 ? 'Expiring' : 'Active';
-    }
-
-    await supabase
-      .from('certificates')
-      .update({
-        name: merged.name,
-        brand_id: merged.brand_id,
-        profile_id: merged.profile_id,
-        issue_date: merged.issue_date,
-        expiry_date: merged.expiry_date,
-        status: merged.status
-      })
-      .eq('id', id);
+    await actions.updateCertificateInDb(id, certData);
+    await fetchInitialData();
   };
 
   const deleteCertificate = async (id: string) => {
-    await supabase.from('certificates').delete().eq('id', id);
+    await actions.deleteCertificateInDb(id);
+    await fetchInitialData();
   };
 
   const addCertificateDefinition = async (certDef: Omit<CertificateDefinition, 'id'>) => {
-    const newDef = { ...certDef, id: `cd_${Date.now()}` };
-    await supabase.from('certificate_definitions').insert(newDef);
+    await actions.addCertificateDefinitionInDb(certDef);
+    await fetchInitialData();
   };
 
   const updateCertificateDefinition = async (id: string, certDefData: Partial<CertificateDefinition>) => {
-    await supabase.from('certificate_definitions').update(certDefData).eq('id', id);
+    await actions.updateCertificateDefinitionInDb(id, certDefData);
+    await fetchInitialData();
   };
 
   const deleteCertificateDefinition = async (id: string) => {
-    await supabase.from('certificate_definitions').delete().eq('id', id);
+    await actions.deleteCertificateDefinitionInDb(id);
+    await fetchInitialData();
   };
 
   const addCustomer = async (customer: Omit<Customer, 'id'>) => {
-    const newCustomer = { ...customer, id: `cust_${Date.now()}` };
-    await supabase.from('customers').insert(newCustomer);
+    await actions.addCustomerInDb(customer);
+    await fetchInitialData();
   };
 
   const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
-    await supabase.from('customers').update(customerData).eq('id', id);
+    await actions.updateCustomerInDb(id, customerData);
+    await fetchInitialData();
   };
 
   const deleteCustomer = async (id: string) => {
-    await supabase.from('customers').delete().eq('id', id);
+    await actions.deleteCustomerInDb(id);
+    await fetchInitialData();
   };
 
   const addContract = async (contract: Omit<Contract, 'id'>) => {
-    const newContract = { ...contract, id: `con_${Date.now()}` };
-    await supabase.from('contracts').insert(newContract);
+    await actions.addContractInDb(contract);
+    await fetchInitialData();
   };
 
   const updateContract = async (id: string, contractData: Partial<Contract>) => {
-    await supabase.from('contracts').update(contractData).eq('id', id);
+    await actions.updateContractInDb(id, contractData);
+    await fetchInitialData();
   };
 
   const deleteContract = async (id: string) => {
-    await supabase.from('contracts').delete().eq('id', id);
+    await actions.deleteContractInDb(id);
+    await fetchInitialData();
   };
 
   const addOneOff = async (oneOff: Omit<OneOff, 'id'>) => {
-    const newOneOff = { ...oneOff, id: `o_${Date.now()}` };
-    await supabase.from('oneoffs').insert(newOneOff);
+    await actions.addOneOffInDb(oneOff);
+    await fetchInitialData();
   };
 
   const updateOneOff = async (id: string, oneOffData: Partial<OneOff>) => {
-    await supabase.from('oneoffs').update(oneOffData).eq('id', id);
+    await actions.updateOneOffInDb(id, oneOffData);
+    await fetchInitialData();
   };
 
   const deleteOneOff = async (id: string) => {
-    await supabase.from('oneoffs').delete().eq('id', id);
+    await actions.deleteOneOffInDb(id);
+    await fetchInitialData();
   };
 
   const addSparePart = async (sparePart: Omit<SparePart, 'id' | 'status'>) => {
-    const status: SparePart['status'] = sparePart.stock_out_date ? 'Out' : 'InStock';
-    const newSparePart = {
-      ...sparePart,
-      id: `sp_${Date.now()}`,
-      status,
-      updated_at: new Date().toISOString(),
-    };
-    await supabase.from('spare_parts').insert(newSparePart);
+    await actions.addSparePartInDb(sparePart);
+    await fetchInitialData();
   };
 
   const updateSparePart = async (id: string, sparePartData: Partial<SparePart>) => {
-    const original = spareParts.find((sp) => sp.id === id);
-    const merged = { ...original, ...sparePartData };
-    const status: SparePart['status'] = merged.stock_out_date ? 'Out' : 'InStock';
-    await supabase
-      .from('spare_parts')
-      .update({ ...sparePartData, status, updated_at: new Date().toISOString() })
-      .eq('id', id);
+    await actions.updateSparePartInDb(id, sparePartData);
+    await fetchInitialData();
   };
 
   const deleteSparePart = async (id: string) => {
-    await supabase.from('spare_parts').delete().eq('id', id);
+    await actions.deleteSparePartInDb(id);
+    await fetchInitialData();
   };
 
   const addCase = async (caseData: Omit<Case, 'id' | 'created_at' | 'sla_countdown_hours'>) => {
-    let slaVal = 24.0;
-    if (caseData.severity === 'Critical') slaVal = 2.0;
-    else if (caseData.severity === 'High') slaVal = 4.0;
-    else if (caseData.severity === 'Low') slaVal = 72.0;
-
-    const newCase = {
-      ...caseData,
-      id: `t_${Date.now()}`,
-      created_at: new Date().toISOString(),
-      sla_countdown_hours: slaVal
-    };
-    await supabase.from('cases').insert(newCase);
-
-    const cust = customers.find((c) => c.id === caseData.customer_id);
-    const newAlert: AppNotification = {
-      id: `n_${Date.now()}_case`,
-      title: `Yeni Destek Talebi [${caseData.severity}]`,
-      message: `"${cust?.name || 'Müşteri'}" için yeni bir talep açıldı: "${caseData.title}"`,
-      severity: caseData.severity === 'Critical' ? 'error' : caseData.severity === 'High' ? 'warning' : 'info',
-      timestamp: new Date().toISOString(),
-      read: false
-    };
-    setNotifications((prev) => [newAlert, ...prev]);
-    await supabase.from('notifications').insert(newAlert);
+    await actions.addCaseInDb(caseData as any);
+    await fetchInitialData();
   };
 
   const updateCase = async (id: string, caseData: Partial<Case>) => {
-    const original = cases.find((c) => c.id === id);
-    if (!original) return;
-
-    const merged = { ...original, ...caseData };
-    if (caseData.severity && original.status === 'Open') {
-      let slaVal = 24.0;
-      if (caseData.severity === 'Critical') slaVal = 2.0;
-      else if (caseData.severity === 'High') slaVal = 4.0;
-      else if (caseData.severity === 'Low') slaVal = 72.0;
-      merged.sla_countdown_hours = slaVal;
-    }
-    if (caseData.status === 'Resolved' || caseData.status === 'Closed') {
-      merged.sla_countdown_hours = original.sla_countdown_hours;
-    }
-
-    await supabase
-      .from('cases')
-      .update({
-        title: merged.title,
-        description: merged.description,
-        severity: merged.severity,
-        status: merged.status,
-        assigned_to: merged.assigned_to,
-        sla_countdown_hours: merged.sla_countdown_hours
-      })
-      .eq('id', id);
+    await actions.updateCaseInDb(id, caseData as any);
+    await fetchInitialData();
   };
 
   const addCaseComment = async (caseId: string, commentText: string) => {
-    const newComment = {
-      id: `cc_${Date.now()}`,
-      case_id: caseId,
-      author: user?.full_name || 'Sistem',
-      text: commentText,
-      date: new Date().toISOString()
-    };
-    await supabase.from('case_comments').insert(newComment);
+    const authorName = user?.full_name || 'Sistem';
+    await actions.addCaseCommentInDb(caseId, authorName, commentText);
+    await fetchInitialData();
   };
 
   const deleteCase = async (id: string) => {
-    await supabase.from('cases').delete().eq('id', id);
+    await actions.deleteCaseInDb(id);
+    await fetchInitialData();
   };
 
   const addTimesheet = async (t: Omit<Timesheet, 'id' | 'status' | 'created_at'>) => {
-    const newTimesheet = {
-      ...t,
-      id: `tms_${Date.now()}`,
-      status: 'Draft' as TimesheetStatus,
-      created_at: new Date().toISOString()
-    };
-    setTimesheets((prev) => [newTimesheet, ...prev]);
-    await supabase.from('timesheets').insert(newTimesheet);
+    await actions.addTimesheetInDb(t);
+    await fetchInitialData();
   };
 
   const updateTimesheet = async (id: string, data: Partial<Timesheet>) => {
-    setTimesheets((prev) => prev.map((t) => (t.id === id ? { ...t, ...data } : t)));
-    await supabase.from('timesheets').update(data).eq('id', id);
+    await actions.updateTimesheetInDb(id, data);
+    await fetchInitialData();
   };
 
   const deleteTimesheet = async (id: string) => {
-    setTimesheets((prev) => prev.filter((t) => t.id !== id));
-    await supabase.from('timesheets').delete().eq('id', id);
+    await actions.deleteTimesheetInDb(id);
+    await fetchInitialData();
   };
 
   const approveTimesheet = async (id: string, status: 'Approved' | 'Rejected' | 'Submitted') => {
     const original = timesheets.find((t) => t.id === id);
     if (!original) return;
 
-    const data = {
-      status,
-      approved_by: status === 'Submitted' ? null : (user?.id || null)
-    };
-
-    setTimesheets((prev) => prev.map((t) => (t.id === id ? { ...t, ...data } : t)));
-    await supabase.from('timesheets').update(data).eq('id', id);
+    await actions.approveTimesheetInDb(id, status, status === 'Submitted' ? null : (user?.id || null));
 
     if (status !== 'Submitted') {
-      // Create notification for engineer if approved or rejected
-      const newAlert: AppNotification = {
-        id: `n_${Date.now()}_tms`,
+      await actions.addNotificationInDb({
         title: status === 'Approved' ? 'Efor Onaylandı' : 'Efor Reddedildi',
         message: `${user?.full_name || 'Yönetici'}, "${original.description.substring(0, 30)}..." açıklamalı efor kaydınızı ${status === 'Approved' ? 'onayladı' : 'reddetti'}.`,
         severity: status === 'Approved' ? 'info' : 'error',
-        timestamp: new Date().toISOString(),
-        read: false
-      };
-      setNotifications((prev) => [newAlert, ...prev]);
-      await supabase.from('notifications').insert(newAlert);
+      });
     } else {
-      // Create notification for engineer that decision was reverted
-      const newAlert: AppNotification = {
-        id: `n_${Date.now()}_tms`,
+      await actions.addNotificationInDb({
         title: 'Efor Kararı Geri Alındı',
         message: `${user?.full_name || 'Yönetici'}, "${original.description.substring(0, 30)}..." açıklamalı efor kaydınızın onay kararını geri aldı ve kaydı inceleme sırasına döndürdü.`,
         severity: 'warning',
-        timestamp: new Date().toISOString(),
-        read: false
-      };
-      setNotifications((prev) => [newAlert, ...prev]);
-      await supabase.from('notifications').insert(newAlert);
+      });
     }
+    await fetchInitialData();
   };
 
   const voteHelpful = async (id: string) => {
-    setKnowledgeArticles((prev) => prev.map((a) => (a.id === id ? { ...a, helpful_votes: a.helpful_votes + 1 } : a)));
-    const original = knowledgeArticles.find((a) => a.id === id);
-    if (original) {
-      await supabase.from('knowledge_articles').update({ helpful_votes: original.helpful_votes + 1 }).eq('id', id);
-    }
+    await actions.voteHelpfulInDb(id);
+    await fetchInitialData();
   };
 
   const addCaseFeedback = async (feedback: Omit<CaseFeedback, 'id' | 'created_at'>) => {
-    const newFeedback = {
-      ...feedback,
-      id: `cf_${Date.now()}`,
-      created_at: new Date().toISOString()
-    };
-    setCaseFeedbacks((prev) => [...prev, newFeedback]);
-    await supabase.from('case_feedbacks').insert(newFeedback);
-
+    await actions.addCaseFeedbackInDb(feedback);
+    
     // Create notification alert
     const targetCase = cases.find((c) => c.id === feedback.case_id);
-    const newAlert: AppNotification = {
-      id: `n_${Date.now()}_csat`,
+    await actions.addNotificationInDb({
       title: `Yeni Müşteri Geri Bildirimi [⭐ ${feedback.rating}]`,
       message: `"${targetCase?.title || 'Destek Talebi'}" için müşteri oylaması yapıldı: "${feedback.comments || 'Yorumsuz'}"`,
       severity: feedback.rating >= 4 ? 'info' : 'warning',
-      timestamp: new Date().toISOString(),
-      read: false
-    };
-    setNotifications((prev) => [newAlert, ...prev]);
-    await supabase.from('notifications').insert(newAlert);
+    });
+    await fetchInitialData();
   };
 
   const deleteCaseFeedback = async (id: string) => {
-    setCaseFeedbacks((prev) => prev.filter((f) => f.id !== id));
-    await supabase.from('case_feedbacks').delete().eq('id', id);
+    await actions.deleteCaseFeedbackInDb(id);
+    await fetchInitialData();
   };
 
   const markNotificationsAsRead = async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    await supabase.from('notifications').update({ read: true }).eq('read', false);
+    await actions.markNotificationsAsReadInDb();
+    await fetchInitialData();
   };
 
   const markNotificationAsRead = async (id: string) => {
-    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    await actions.markNotificationAsReadInDb(id);
+    await fetchInitialData();
   };
 
   const addKnowledgeArticle = async (article: Omit<KnowledgeArticle, 'id' | 'views_count' | 'helpful_votes' | 'created_at' | 'updated_at'>) => {
-    const newArticle = {
-      ...article,
-      id: `ka_${Date.now()}`,
-      views_count: 0,
-      helpful_votes: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setKnowledgeArticles((prev) => [newArticle, ...prev]);
-    await supabase.from('knowledge_articles').insert(newArticle);
+    await actions.addKnowledgeArticleInDb(article);
+    await fetchInitialData();
   };
 
   const updateKnowledgeArticle = async (id: string, articleData: Partial<KnowledgeArticle>) => {
-    const updated = {
-      ...articleData,
-      updated_at: new Date().toISOString()
-    };
-    setKnowledgeArticles((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)));
-    await supabase.from('knowledge_articles').update(updated).eq('id', id);
+    await actions.updateKnowledgeArticleInDb(id, articleData);
+    await fetchInitialData();
   };
 
   const deleteKnowledgeArticle = async (id: string) => {
-    setKnowledgeArticles((prev) => prev.filter((a) => a.id !== id));
-    await supabase.from('knowledge_articles').delete().eq('id', id);
+    await actions.deleteKnowledgeArticleInDb(id);
+    await fetchInitialData();
   };
 
   const incrementViews = async (id: string) => {
-    setKnowledgeArticles((prev) => prev.map((a) => (a.id === id ? { ...a, views_count: a.views_count + 1 } : a)));
-    const original = knowledgeArticles.find((a) => a.id === id);
-    if (original) {
-      await supabase.from('knowledge_articles').update({ views_count: original.views_count + 1 }).eq('id', id);
-    }
+    await actions.incrementViewsInDb(id);
+    await fetchInitialData();
   };
 
   // Inject computed names for relational mapping on output variables
