@@ -11,15 +11,38 @@ import {
   SafetyCertificateOutlined,
   ClockCircleOutlined,
   TrophyOutlined,
-  StarOutlined
+  StarOutlined,
+  BarChartOutlined,
+  PieChartOutlined,
+  AreaChartOutlined
 } from '@ant-design/icons';
 import { useApp, Case, Certificate } from '@/context/AppContext';
 import Link from 'next/link';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as ChartTooltip,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area
+} from 'recharts';
 
 const { Title, Text } = Typography;
 
 export default function DashboardPage() {
-  const { user, cases, contracts, customers, certificates, oneOffs, profiles } = useApp();
+  const { user, cases, contracts, customers, certificates, oneOffs, profiles, timesheets } = useApp();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   // --- Calculations ---
   const activeCases = cases.filter((c) => c.status === 'Open' || c.status === 'In Progress');
@@ -47,9 +70,47 @@ export default function DashboardPage() {
 
   // SLA achievement gauge calculation
   const totalClosedCases = cases.filter((c) => c.status === 'Resolved' || c.status === 'Closed').length;
-  // Simulating cases met SLA (e.g. they weren't closed with 0 countdown)
   const metSlaCases = cases.filter((c) => (c.status === 'Resolved' || c.status === 'Closed') && c.sla_countdown_hours >= 0).length;
   const slaAchievementRate = totalClosedCases > 0 ? Math.round((metSlaCases / totalClosedCases) * 100) : 100;
+
+  // --- Chart Data Processing ---
+
+  // 1. Timesheet Hours by Engineer
+  const timesheetChartData = profiles.map((p) => {
+    const userTimesheets = timesheets.filter((t) => t.profile_id === p.id);
+    const totalHours = userTimesheets.reduce((sum, t) => sum + Number(t.hours_spent), 0);
+    return {
+      name: p.full_name,
+      Saat: parseFloat(totalHours.toFixed(1))
+    };
+  });
+
+  // 2. Active Cases by Severity
+  const severityCounts = {
+    Critical: activeCases.filter((c) => c.severity === 'Critical').length,
+    High: activeCases.filter((c) => c.severity === 'High').length,
+    Medium: activeCases.filter((c) => c.severity === 'Medium').length,
+    Low: activeCases.filter((c) => c.severity === 'Low').length
+  };
+  const caseSeverityChartData = [
+    { name: 'Kritik (Critical)', value: severityCounts.Critical, color: '#ef4444' },
+    { name: 'Yüksek (High)', value: severityCounts.High, color: '#f97316' },
+    { name: 'Orta (Medium)', value: severityCounts.Medium, color: '#eab308' },
+    { name: 'Düşük (Low)', value: severityCounts.Low, color: '#3b82f6' }
+  ].filter(item => item.value > 0);
+
+  // 3. Customer Financial Volume Breakdown (For non-restricted users)
+  const customerFinancialsData = customers.map((c) => {
+    const customerContracts = contracts.filter((con) => con.customer_id === c.id && con.status === 'Active');
+    const customerOneoffs = oneOffs.filter((o) => o.customer_id === c.id && o.status === 'Completed');
+    const contractSum = customerContracts.reduce((sum, con) => sum + Number(con.value), 0);
+    const projectSum = customerOneoffs.reduce((sum, o) => sum + Number(o.amount), 0);
+    return {
+      name: c.name.split(' ')[0], // First word of company name
+      'Sözleşme': contractSum,
+      'Proje': projectSum
+    };
+  });
 
   // --- Table Column Definitions ---
 
@@ -221,6 +282,136 @@ export default function DashboardPage() {
         </Col>
       </Row>
 
+      {/* Interactive Charts Row */}
+      <Row gutter={[20, 20]}>
+        {/* Timesheet Hours Bar Chart */}
+        <Col xs={24} lg={12}>
+          <Card
+            bordered={false}
+            title={
+              <Space>
+                <BarChartOutlined style={{ color: '#0ea5e9' }} />
+                <span>Personel Kayıtlı Çalışma Saatleri (Efor)</span>
+              </Space>
+            }
+            style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+          >
+            <div style={{ width: '100%', height: 260 }}>
+              {mounted && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={timesheetChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <ChartTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
+                    <Bar dataKey="Saat" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={45} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </Card>
+        </Col>
+
+        {/* Case Severity Pie Chart */}
+        <Col xs={24} lg={12}>
+          <Card
+            bordered={false}
+            title={
+              <Space>
+                <PieChartOutlined style={{ color: '#f59e0b' }} />
+                <span>Aktif Vakaların Önem Derecesine Göre Dağılımı</span>
+              </Space>
+            }
+            style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', height: 260 }}>
+              {caseSeverityChartData.length > 0 ? (
+                <>
+                  <div style={{ width: '50%', height: '100%' }}>
+                    {mounted && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={caseSeverityChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {caseSeverityChartData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <ChartTooltip contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '40%' }}>
+                    {caseSeverityChartData.map((entry, index) => (
+                      <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: entry.color }} />
+                        <Text style={{ fontSize: 12 }} type="secondary">
+                          {entry.name}: <Text strong>{entry.value}</Text>
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div style={{ textAlign: 'center', width: '100%' }}>
+                  <Text type="secondary">Şu anda açık veya işleme alınmış aktif vaka bulunmamaktadır.</Text>
+                </div>
+              )}
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Financial Volume Chart (Conditional RBAC) */}
+      {!isFinanceRestricted && (
+        <Row gutter={[20, 20]}>
+          <Col span={24}>
+            <Card
+              bordered={false}
+              title={
+                <Space>
+                  <AreaChartOutlined style={{ color: '#10b981' }} />
+                  <span>Müşteri Finansal Hacim Analizi (Sözleşme vs. Proje)</span>
+                </Space>
+              }
+              style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+            >
+              <div style={{ width: '100%', height: 280 }}>
+                {mounted && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={customerFinancialsData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="$" />
+                      <ChartTooltip contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} formatter={(val) => `$${Number(val).toLocaleString()}`} />
+                      <Legend verticalAlign="top" height={36} iconType="circle" />
+                      <Area type="monotone" dataKey="Sözleşme" stroke="#10b981" fillOpacity={0.15} fill="url(#colorSözleşme)" />
+                      <Area type="monotone" dataKey="Proje" stroke="#0ea5e9" fillOpacity={0.15} fill="url(#colorProje)" />
+                      <defs>
+                        <linearGradient id="colorSözleşme" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorProje" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
       {/* Main Content Grid */}
       <Row gutter={[20, 20]}>
         {/* Active Support Cases Table */}
@@ -234,7 +425,7 @@ export default function DashboardPage() {
               </Space>
             }
             extra={<Link href="/cases" style={{ color: '#0ea5e9' }}>Tümünü Gör</Link>}
-            style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', height: '100%' }}
+            style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
           >
             <Table
               columns={caseColumns}
@@ -249,7 +440,7 @@ export default function DashboardPage() {
 
         {/* SLA and Expiry Trackers Column */}
         <Col xs={24} lg={8}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, height: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* SLA Gauge Card */}
             <Card
               bordered={false}
@@ -320,7 +511,7 @@ export default function DashboardPage() {
                 </Space>
               }
               extra={<Link href="/certificates" style={{ color: '#0ea5e9' }}>Tümünü Gör</Link>}
-              style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', flex: 1 }}
+              style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
             >
               <List
                 size="small"
