@@ -78,7 +78,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   // If we are on the login page or not logged in, render without the shell
   if (pathname === '/login' || !user) {
-    return <>{children}</>;
+    return <div className="page-fade-in">{children}</div>;
   }
 
   // Define sidebar menu items based on RBAC roles
@@ -420,7 +420,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </Header>
 
         {/* Content Body */}
-        <Content style={{ padding: '24px 32px', minHeight: 'calc(100vh - 64px)', overflow: 'initial' }}>
+        <Content
+          className="page-fade-in"
+          style={{ padding: '24px 32px', minHeight: 'calc(100vh - 64px)', overflow: 'initial' }}
+        >
           {children}
         </Content>
       </Layout>

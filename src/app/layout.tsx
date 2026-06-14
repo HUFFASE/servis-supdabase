@@ -7,6 +7,8 @@ import Shell from '@/components/Shell';
 import React from 'react';
 import { ConfigProvider } from 'antd';
 import trTR from 'antd/locale/tr_TR';
+import NextTopLoader from 'nextjs-toploader';
+
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -45,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className="h-full bg-slate-50 antialiased">
       <body className={`${inter.className} min-h-full flex flex-col`}>
+        <NextTopLoader color="#0ea5e9" height={3} showSpinner={false} shadow="0 0 10px #0ea5e9,0 0 5px #0ea5e9" />
         <AntdRegistry>
           <ConfigProvider theme={themeConfig} locale={trTR}>
             <AppProvider>

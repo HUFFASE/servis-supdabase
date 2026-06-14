@@ -16,6 +16,7 @@
     "antd": "^6.4.3",
     "bcryptjs": "^3.0.3",
     "next": "16.2.6",
+    "nextjs-toploader": "^3.9.17",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1"

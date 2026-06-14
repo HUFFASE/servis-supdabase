@@ -220,7 +220,7 @@ export default function DashboardPage() {
       {/* Metric Cards Grid */}
       <Row gutter={[20, 20]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Destek Talepleri</Text>}
               value={activeCases.length}
@@ -234,7 +234,7 @@ export default function DashboardPage() {
         </Col>
         
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Bakım Sözleşmeleri</Text>}
               value={activeContractsCount}
@@ -248,7 +248,7 @@ export default function DashboardPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Müşteri Memnuniyeti (CSAT)</Text>}
               value={totalCSATCount > 0 ? averageCSAT : 'Puan Yok'}
@@ -263,7 +263,7 @@ export default function DashboardPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} hoverable style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Finansal Hacim</Text>}
               value={isFinanceRestricted ? 'Gizli' : totalFinancialVolume}
@@ -287,6 +287,7 @@ export default function DashboardPage() {
         {/* Timesheet Hours Bar Chart */}
         <Col xs={24} lg={12}>
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space>
@@ -314,6 +315,7 @@ export default function DashboardPage() {
         {/* Case Severity Pie Chart */}
         <Col xs={24} lg={12}>
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space>
@@ -374,6 +376,7 @@ export default function DashboardPage() {
         <Row gutter={[20, 20]}>
           <Col span={24}>
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
@@ -417,6 +420,7 @@ export default function DashboardPage() {
         {/* Active Support Cases Table */}
         <Col xs={24} lg={16}>
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space>
@@ -443,6 +447,7 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* SLA Gauge Card */}
             <Card
+              className="premium-card"
               bordered={false}
               title="SLA Başarım Oranı"
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
@@ -457,6 +462,7 @@ export default function DashboardPage() {
 
             {/* CSAT Leaderboard Card */}
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
@@ -503,6 +509,7 @@ export default function DashboardPage() {
 
             {/* Certificate Tracker Card */}
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
