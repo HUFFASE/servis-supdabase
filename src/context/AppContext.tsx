@@ -572,6 +572,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         Low: 72.0
       };
 
+      const addLocalNotification = (title: string, message: string, severity: 'info' | 'warning' | 'error') => {
+        const newAlert = {
+          id: `n_sim_${Date.now()}_${Math.random()}`,
+          title,
+          message,
+          severity,
+          timestamp: new Date().toISOString(),
+          read: false
+        };
+        setNotifications((prev) => [newAlert, ...prev]);
+      };
+
       // 1. Tick down SLA counter on open/in-progress cases
       setCases((prevCases) => {
         const updated = prevCases.map((c) => {
@@ -596,34 +608,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               // Red Alert
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA İhlali'));
               if (!exists) {
-                const newAlert = {
-                  title: `🔴 SLA İhlali! - ${c.customer_name || 'Müşteri'}`,
-                  message: `"${c.title}" başlıklı talebin SLA süresi aşılmıştır! Bölüm Direktörü (Kemal Yılmaz) ve teknik operasyon ekibi alarma geçirildi.`,
-                  severity: 'error'
-                };
-                actions.addNotificationInDb(newAlert);
+                const title = `🔴 SLA İhlali! - ${c.customer_name || 'Müşteri'}`;
+                const message = `"${c.title}" başlıklı talebin SLA süresi aşılmıştır! Bölüm Direktörü (Kemal Yılmaz) ve teknik operasyon ekibi alarma geçirildi.`;
+                addLocalNotification(title, message, 'error');
               }
             } else if (percentage <= 25) {
               // Orange Alert
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Kritik Seviye'));
               if (!exists) {
-                const newAlert = {
-                  title: `🚨 SLA Kritik Seviye (%75) - ${c.customer_name || 'Müşteri'}`,
-                  message: `"${c.title}" başlıklı talebin kalan SLA süresi %25'in altına inmiştir! Bölüm Müdürü (Ayşe Kaya) eskalasyon zincirine dahil edildi.`,
-                  severity: 'error'
-                };
-                actions.addNotificationInDb(newAlert);
+                const title = `🚨 SLA Kritik Seviye (%75) - ${c.customer_name || 'Müşteri'}`;
+                const message = `"${c.title}" başlıklı talebin kalan SLA süresi %25'in altına inmiştir! Bölüm Müdürü (Ayşe Kaya) eskalasyon zincirine dahil edildi.`;
+                addLocalNotification(title, message, 'error');
               }
             } else if (percentage <= 50) {
               // Yellow Alert
               const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Uyarısı'));
               if (!exists) {
-                const newAlert = {
-                  title: `⚠️ SLA Uyarısı (%50) - ${c.customer_name || 'Müşteri'}`,
-                  message: `"${c.title}" başlıklı vakanın SLA süresi %50'nin altına indi! Sorumlu mühendis eskalasyonu tetiklendi.`,
-                  severity: 'warning'
-                };
-                actions.addNotificationInDb(newAlert);
+                const title = `⚠️ SLA Uyarısı (%50) - ${c.customer_name || 'Müşteri'}`;
+                const message = `"${c.title}" başlıklı vakanın SLA süresi %50'nin altına indi! Sorumlu mühendis eskalasyonu tetiklendi.`;
+                addLocalNotification(title, message, 'warning');
               }
             }
           }
