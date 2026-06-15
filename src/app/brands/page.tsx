@@ -152,8 +152,8 @@ export default function BrandsPage() {
         {sortedBrands.map((b) => (
           <Col xs={24} sm={12} md={6} key={b.id}>
             <Card
+              className="premium-card"
               bordered={false}
-              hoverable
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
               bodyStyle={{ padding: 20 }}
             >
@@ -189,6 +189,7 @@ export default function BrandsPage() {
 
       {/* Brands Table */}
       <Card
+        className="premium-card"
         bordered={false}
         title={
           <Space>

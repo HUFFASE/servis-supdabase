@@ -581,7 +581,7 @@ export default function TimesheetsPage() {
       {/* Analytics Summary Row (Only for the engineer view, but always visible for context) */}
       <Row gutter={[20, 20]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Onaylanan Toplam Saat</Text>}
               value={myTotalApprovedHours}
@@ -593,7 +593,7 @@ export default function TimesheetsPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Onay Bekleyen Saat</Text>}
               value={myTotalSubmittedHours}
@@ -605,7 +605,7 @@ export default function TimesheetsPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Taslak Eforlarım</Text>}
               value={myTotalDraftHours}
@@ -617,7 +617,7 @@ export default function TimesheetsPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Faturalandırılabilirlik Oranı</Text>}
               value={myBillableRatio}
@@ -649,6 +649,7 @@ export default function TimesheetsPage() {
                 {/* Efor Giriş Formu */}
                 <Col xs={24} lg={8}>
                   <Card
+                    className="premium-card"
                     bordered={false}
                     title={
                       <Space>
@@ -761,6 +762,7 @@ export default function TimesheetsPage() {
                 {/* Efor Geçmişi Tablosu */}
                 <Col xs={24} lg={16}>
                   <Card
+                    className="premium-card"
                     bordered={false}
                     title={
                       <Space>
@@ -805,6 +807,7 @@ export default function TimesheetsPage() {
                   children: (
                     <Space direction="vertical" size={24} style={{ width: '100%' }}>
                       <Card
+                        className="premium-card"
                         bordered={false}
                         title={
                           <Space>
@@ -827,6 +830,7 @@ export default function TimesheetsPage() {
                       </Card>
 
                       <Card
+                        className="premium-card"
                         bordered={false}
                         title={
                           <Space>

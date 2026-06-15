@@ -767,6 +767,7 @@ export default function CasesPage() {
 
       {/* Arama & Filtre & Görünüm Değiştirici Kontrol Paneli */}
       <Card
+        className="premium-card"
         size="small"
         bordered={false}
         style={{ borderRadius: 10, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.015)', background: '#fff' }}
@@ -864,6 +865,7 @@ export default function CasesPage() {
       {viewMode === 'list' ? (
         /* 1. LİSTE GÖRÜNÜMÜ */
         <Card
+          className="premium-card"
           bordered={false}
           style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
           bodyStyle={{ padding: 0 }}

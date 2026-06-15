@@ -150,6 +150,7 @@ export default function CustomersPage() {
 
       {/* CRM Database Table Card */}
       <Card
+        className="premium-card"
         bordered={false}
         title={
           <Space>

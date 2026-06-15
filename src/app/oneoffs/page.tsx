@@ -140,6 +140,7 @@ export default function OneOffsPage() {
 
       {/* Database Table Card */}
       <Card
+        className="premium-card"
         bordered={false}
         title={
           <Space>

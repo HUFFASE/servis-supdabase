@@ -43,7 +43,7 @@ export default function UsersPage() {
       full_name: profile.full_name,
       email: profile.email,
       role: profile.role,
-      password: profile.password || '123456',
+      password: '',
       hourly_cost: profile.hourly_cost || 50,
     });
     setDrawerVisible(true);
@@ -191,7 +191,7 @@ export default function UsersPage() {
       <Row gutter={[20, 20]}>
         {/* Info Card */}
         <Col xs={24} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Space direction="vertical" align="center" style={{ width: '100%', padding: '16px 0' }} size={16}>
               <Avatar src={user?.avatar_url} size={80} style={{ border: '4px solid #f1f5f9' }} />
               <div style={{ textAlign: 'center' }}>
@@ -209,6 +209,7 @@ export default function UsersPage() {
         {/* Users Table Card */}
         <Col xs={24} lg={18}>
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space>
@@ -353,7 +354,7 @@ export default function UsersPage() {
                       <Text type="secondary" style={{ fontSize: 11 }}>Giriş Şifresi</Text>
                       <Space size={6}>
                         <KeyOutlined style={{ color: '#94a3b8' }} />
-                        <Text strong style={{ fontSize: 13 }}>{detailProfile.password || '123456'}</Text>
+                        <Text strong style={{ fontSize: 13 }}>•••••• (Bcrypt ile Korunuyor)</Text>
                       </Space>
                     </Space>
                   </Col>
@@ -514,13 +515,12 @@ export default function UsersPage() {
             {(selectedProfile.id === user?.id || user?.role === 'Direktör') && (
               <Form.Item
                 name="password"
-                label="Şifre"
+                label="Yeni Şifre"
                 rules={[
-                  { required: true, message: 'Lütfen şifre girin!' },
                   { min: 6, message: 'Şifre en az 6 karakter olmalıdır!' }
                 ]}
               >
-                <Input.Password placeholder="Yeni şifrenizi belirleyin" autoComplete="new-password" />
+                <Input.Password placeholder="Değiştirmek istemiyorsanız boş bırakın" autoComplete="new-password" />
               </Form.Item>
             )}
           </Form>

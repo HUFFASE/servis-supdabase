@@ -15,15 +15,32 @@ import {
   RiseOutlined,
   ArrowUpOutlined
 } from '@ant-design/icons';
-import { useApp, Profile, Case, Customer } from '@/context/AppContext';
+import { useApp, Profile, Case, Customer, Certificate } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as ChartTooltip,
+  Legend,
+  Line,
+  ComposedChart
+} from 'recharts';
 
 const { Title, Text, Paragraph } = Typography;
+
 
 export default function ReportsPage() {
   const { user, cases, contracts, customers, oneOffs, profiles, timesheets } = useApp();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'general' | 'engineers' | 'finance'>('general');
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Enforce RBAC validation
   if (!user) {
@@ -160,6 +177,35 @@ export default function ReportsPage() {
     };
   });
 
+  // --- Chart Data Formatting ---
+  const customerSlaChartData = customerSLAs.map((item) => ({
+    name: item.customer.name.split(' ')[0],
+    'SLA Oranı (%)': item.slaRate,
+    'Açık': item.active,
+    'Kapatılan': item.closed
+  }));
+
+  const engineerChartData = engineerWorkloads.map((item) => {
+    const userTs = approvedTimesheets.filter((t) => t.profile_id === item.profile.id);
+    const totalHours = userTs.reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+    const billableHours = userTs.filter((t) => t.is_billable).reduce((acc, curr) => acc + Number(curr.hours_spent), 0);
+    const billablePercentage = totalHours > 0 ? Math.round((billableHours / totalHours) * 100) : 0;
+    return {
+      name: item.profile.full_name.split(' ')[0] + ' ' + (item.profile.full_name.split(' ')[1] ? item.profile.full_name.split(' ')[1][0] + '.' : ''),
+      'Aktif Çağrı': item.activeCount,
+      'Kapatılan': item.completedCount,
+      'Verimlilik Oranı (%)': billablePercentage
+    };
+  });
+
+  const customerFinanceChartData = customerFinancials.map((item) => ({
+    name: item.customer.name.split(' ')[0],
+    'Ciro (Gelir)': item.totalSum,
+    'İş Gücü Gideri (COGS)': item.customerLaborCost,
+    'Net Operasyonel Kâr': item.customerNetProfit,
+    'Kâr Marjı (%)': Math.max(0, item.customerMargin)
+  }));
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Header section */}
@@ -192,7 +238,7 @@ export default function ReportsPage() {
           {/* Top Row Cards */}
           <Row gutter={[20, 20]}>
             <Col xs={24} md={8}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', textAlign: 'center' }}>
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', textAlign: 'center' }}>
                 <Progress
                   type="circle"
                   percent={slaAchievementRate}
@@ -207,34 +253,53 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} md={16}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', height: '100%' }}>
-                <Title level={5} style={{ margin: '0 0 16px 0', color: '#1e293b' }}>Operasyonel SLA Başarımı Müşteri Kırılımı</Title>
-                <List
-                  dataSource={customerSLAs}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                          <Text strong style={{ color: '#334155' }}>{item.customer.name}</Text>
-                          <Space>
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {item.closed} Kapatıldı / {item.active} Açık
-                            </Text>
-                            <Tag color={item.slaRate >= 90 ? 'success' : item.slaRate >= 75 ? 'warning' : 'error'} style={{ fontWeight: 600 }}>
-                              SLA: %{item.slaRate}
-                            </Tag>
-                          </Space>
-                        </div>
-                        <Progress
-                          percent={item.slaRate}
-                          size="small"
-                          status={item.slaRate >= 90 ? 'success' : item.slaRate >= 75 ? 'normal' : 'exception'}
-                          strokeColor={item.slaRate >= 90 ? '#10b981' : item.slaRate >= 75 ? '#f59e0b' : '#ef4444'}
-                        />
-                      </div>
-                    </List.Item>
-                  )}
-                />
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', height: '100%' }}>
+                <Row gutter={[20, 20]}>
+                  <Col xs={24} lg={11}>
+                    <Title level={5} style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 14 }}>Operasyonel SLA Başarımı Müşteri Kırılımı</Title>
+                    <List
+                      dataSource={customerSLAs}
+                      renderItem={(item) => (
+                        <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                              <Text strong style={{ color: '#334155', fontSize: 12 }}>{item.customer.name}</Text>
+                              <Space size={4}>
+                                <Text type="secondary" style={{ fontSize: 10 }}>
+                                  {item.closed} Kap. / {item.active} Açık
+                                </Text>
+                                <Tag color={item.slaRate >= 90 ? 'success' : item.slaRate >= 75 ? 'warning' : 'error'} style={{ fontWeight: 600, fontSize: 10, padding: '0 4px', margin: 0 }}>
+                                  %{item.slaRate}
+                                </Tag>
+                              </Space>
+                            </div>
+                            <Progress
+                              percent={item.slaRate}
+                              size="small"
+                              status={item.slaRate >= 90 ? 'success' : item.slaRate >= 75 ? 'normal' : 'exception'}
+                              strokeColor={item.slaRate >= 90 ? '#10b981' : item.slaRate >= 75 ? '#f59e0b' : '#ef4444'}
+                            />
+                          </div>
+                        </List.Item>
+                      )}
+                    />
+                  </Col>
+                  <Col xs={24} lg={13}>
+                    <Title level={5} style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 14 }}>Müşteri Karşılaştırmalı SLA Oranları</Title>
+                    <div style={{ width: '100%', height: 260 }}>
+                      {mounted && (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={customerSlaChartData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                            <XAxis type="number" domain={[0, 100]} stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                            <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                            <ChartTooltip contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} formatter={(val) => `%${val}`} />
+                            <Bar dataKey="SLA Oranı (%)" fill="#0ea5e9" radius={[0, 4, 4, 0]} maxBarSize={15} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                  </Col>
+                </Row>
               </Card>
             </Col>
           </Row>
@@ -243,6 +308,7 @@ export default function ReportsPage() {
           <Row gutter={[20, 20]}>
             <Col xs={24} md={12}>
               <Card
+                className="premium-card"
                 bordered={false}
                 title={
                   <Space>
@@ -290,6 +356,7 @@ export default function ReportsPage() {
 
             <Col xs={24} md={12}>
               <Card
+                className="premium-card"
                 bordered={false}
                 title={
                   <Space>
@@ -333,6 +400,39 @@ export default function ReportsPage() {
       {/* TAB 2: ENGINEER WORKLOADS */}
       {activeTab === 'engineers' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Engineer Workload Chart Row */}
+          <Row gutter={[20, 20]}>
+            <Col span={24}>
+              <Card
+                className="premium-card"
+                bordered={false}
+                title={
+                  <Space>
+                    <BarChartOutlined style={{ color: '#0ea5e9' }} />
+                    <span>Mühendis İş Yükü (Açık/Kapalı) ve Faturalandırılabilir Verimlilik (FTE) Karşılaştırması</span>
+                  </Space>
+                }
+                style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+              >
+                <div style={{ width: '100%', height: 240 }}>
+                  {mounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={engineerChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                        <ChartTooltip contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} />
+                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                        <Bar dataKey="Aktif Çağrı" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                        <Bar dataKey="Kapatılan" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                        <Line type="monotone" dataKey="Verimlilik Oranı (%)" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+
           {/* Workload Metric cards */}
           <Row gutter={[20, 20]}>
             {engineerWorkloads.map((item) => {
@@ -349,6 +449,7 @@ export default function ReportsPage() {
               return (
                 <Col xs={24} sm={12} lg={6} key={item.profile.id}>
                   <Card
+                    className="premium-card"
                     bordered={false}
                     style={{
                       borderRadius: 12,
@@ -420,6 +521,7 @@ export default function ReportsPage() {
 
           {/* Engineer Details Table */}
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space>
@@ -531,7 +633,7 @@ export default function ReportsPage() {
           {/* Revenue Breakdown statistics */}
           <Row gutter={[20, 20]} style={{ marginBottom: 8 }}>
             <Col xs={24} sm={12} lg={6}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Operasyonel Gelir</Text>}
                   value={totalRevenue}
@@ -546,7 +648,7 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>İş Gücü Maliyeti (COGS)</Text>}
                   value={totalLaborCost}
@@ -561,7 +663,7 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Brüt Operasyonel Kâr</Text>}
                   value={totalGrossProfit}
@@ -576,7 +678,7 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Operasyonel Kâr Marjı</Text>}
                   value={totalMarginPercentage}
@@ -591,8 +693,42 @@ export default function ReportsPage() {
             </Col>
           </Row>
 
+          {/* Customer Finance Chart Row */}
+          <Row gutter={[20, 20]}>
+            <Col span={24}>
+              <Card
+                className="premium-card"
+                bordered={false}
+                title={
+                  <Space>
+                    <RiseOutlined style={{ color: '#10b981' }} />
+                    <span>Müşteri Gelir, Gider (COGS) ve Net Operasyonel Kâr Karşılaştırması</span>
+                  </Space>
+                }
+                style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
+              >
+                <div style={{ width: '100%', height: 260 }}>
+                  {mounted && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={customerFinanceChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                        <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="$" />
+                        <ChartTooltip contentStyle={{ borderRadius: 6, border: '1px solid #e2e8f0' }} formatter={(val) => `$${Number(val).toLocaleString()}`} />
+                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                        <Bar dataKey="Ciro (Gelir)" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                        <Bar dataKey="İş Gücü Gideri (COGS)" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                        <Bar dataKey="Net Operasyonel Kâr" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={25} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+
           {/* Customer Financial Breakdown */}
           <Card
+            className="premium-card"
             bordered={false}
             title={
               <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>

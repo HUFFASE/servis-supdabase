@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as actions from '@/lib/actions';
-import { message } from 'antd';
+import { message, notification } from 'antd';
 
 // --- Type Definitions ---
 
@@ -182,7 +182,7 @@ export interface SparePart {
 interface AppContextType {
   // Auth state
   user: Profile | null;
-  login: (role: UserRole, email?: string, password?: string) => Promise<boolean>;
+  login: (role?: UserRole, email?: string, password?: string) => Promise<boolean>;
   logout: () => void;
 
   // DB tables (state)
@@ -497,6 +497,50 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
+
+  // Effect to display toast notifications for newly added unread notifications
+  useEffect(() => {
+    if (notifications.length === 0) return;
+
+    // On the first load, mark all current notification IDs as seen
+    if (seenNotificationIds.size === 0) {
+      setSeenNotificationIds(new Set(notifications.map(n => n.id)));
+      return;
+    }
+
+    let updatedSeen = false;
+    const nextSeen = new Set(seenNotificationIds);
+
+    notifications.forEach((n) => {
+      if (!n.read && !seenNotificationIds.has(n.id)) {
+        // Trigger notification toast
+        const config = {
+          key: n.id,
+          message: n.title,
+          description: n.message,
+          placement: 'bottomRight' as const,
+          duration: 6,
+        };
+
+        if (n.severity === 'error') {
+          notification.error(config);
+        } else if (n.severity === 'warning') {
+          notification.warning(config);
+        } else {
+          notification.info(config);
+        }
+
+        nextSeen.add(n.id);
+        updatedSeen = true;
+      }
+    });
+
+    if (updatedSeen) {
+      setSeenNotificationIds(nextSeen);
+    }
+  }, [notifications, seenNotificationIds]);
+
   // Sync auth and database on start
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -508,10 +552,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     fetchInitialData();
 
-    // Client-side Polling: poll database updates every 10 seconds (fully database-agnostic realtime replacement)
+    // Client-side Polling: poll database updates every 90 seconds (fully database-agnostic realtime replacement)
     const interval = setInterval(() => {
       fetchInitialData();
-    }, 10000);
+    }, 90000);
 
     return () => {
       clearInterval(interval);
@@ -535,9 +579,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const nextVal = parseFloat((c.sla_countdown_hours - 0.05).toFixed(2));
             const finalVal = nextVal < 0 ? 0 : nextVal;
             
-            // Sync tick to database in background
-            actions.updateCaseInDb(c.id, { sla_countdown_hours: finalVal });
-            
+            // Ticks down dynamically in local state to prevent exceeding database connection limits
             return { ...c, sla_countdown_hours: finalVal };
           }
           return c;
@@ -595,7 +637,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [notifications, customers]);
 
   // Auth Actions
-  const login = async (role: UserRole, email?: string, password?: string): Promise<boolean> => {
+  const login = async (role?: UserRole, email?: string, password?: string): Promise<boolean> => {
     // 1. Try real authentication with email and password first if provided
     if (email && password) {
       try {
@@ -850,11 +892,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const markNotificationsAsRead = async () => {
     await actions.markNotificationsAsReadInDb();
+    notification.destroy();
+    setSeenNotificationIds(new Set(notifications.map(n => n.id)));
     await fetchInitialData();
   };
 
   const markNotificationAsRead = async (id: string) => {
     await actions.markNotificationAsReadInDb(id);
+    notification.destroy(id);
     await fetchInitialData();
   };
 

@@ -132,6 +132,7 @@ export default function ServicesPage() {
 
       {/* Filter and List Card */}
       <Card
+        className="premium-card"
         bordered={false}
         title={
           <Space>

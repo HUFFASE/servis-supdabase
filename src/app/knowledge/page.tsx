@@ -243,7 +243,7 @@ function KnowledgePageContent() {
       </div>
 
       {/* Search Input Bar */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+      <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
         <Input
           prefix={<SearchOutlined style={{ color: '#0ea5e9', marginRight: 8 }} />}
           placeholder="Makale başlığı, içerik veya teknik etiketlerde arama yapın..."
@@ -261,6 +261,7 @@ function KnowledgePageContent() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* Brands Filter */}
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
@@ -308,6 +309,7 @@ function KnowledgePageContent() {
 
             {/* Services Filter */}
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
@@ -331,6 +333,7 @@ function KnowledgePageContent() {
 
             {/* Popular Tags Filter */}
             <Card
+              className="premium-card"
               bordered={false}
               title={
                 <Space>
@@ -369,7 +372,7 @@ function KnowledgePageContent() {
         {/* Right Side: Articles List */}
         <Col xs={24} lg={18}>
           {filteredArticles.length === 0 ? (
-            <Card bordered={false} style={{ borderRadius: 12, padding: '40px 0', textAlign: 'center' }}>
+            <Card className="premium-card" bordered={false} style={{ borderRadius: 12, padding: '40px 0', textAlign: 'center' }}>
               <Empty description="Aradığınız kriterlere uygun makale bulunamadı." />
             </Card>
           ) : (
@@ -377,8 +380,8 @@ function KnowledgePageContent() {
               {filteredArticles.map((article) => (
                 <Col xs={24} key={article.id}>
                   <Card
+                    className="premium-card"
                     bordered={false}
-                    hoverable
                     onClick={() => openReader(article)}
                     style={{
                       borderRadius: 12,

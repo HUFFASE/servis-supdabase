@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Select, Typography, Alert, Space, Divider, message } from 'antd';
-import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
-import { useApp, UserRole } from '@/context/AppContext';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 
 const { Title, Text } = Typography;
@@ -12,14 +12,13 @@ export default function LoginPage() {
   const { login } = useApp();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>('Postsales');
 
   const onFinish = async (values: any) => {
     setLoading(true);
     try {
       // Simulate quick login delay for realism
       await new Promise((resolve) => setTimeout(resolve, 800));
-      const success = await login(selectedRole, values.email, values.password);
+      const success = await login(undefined, values.email, values.password);
       
       if (success) {
         message.success({
@@ -114,33 +113,7 @@ export default function LoginPage() {
           </Text>
         </div>
 
-        <Alert
-          message="Simülasyon Modu"
-          description="RBAC (Yetki Rolü) testleri için giriş yapmak istediğiniz kullanıcı rolünü aşağıdaki listeden seçebilirsiniz."
-          type="info"
-          showIcon
-          icon={<SafetyOutlined />}
-          style={{ marginBottom: 20, fontSize: 12 }}
-        />
-
-        <Form name="login_form" initialValues={{ email: 'user@techservices.com' }} onFinish={onFinish} size="large">
-          {/* Role selection dropdown (For Simulation) */}
-          <Form.Item label={<Text strong style={{ fontSize: 13 }}>Giriş Yapılacak Rol (Test)</Text>} labelCol={{ span: 24 }}>
-            <Select
-              value={selectedRole}
-              onChange={(value: UserRole) => setSelectedRole(value)}
-              options={[
-                { value: 'Direktör', label: 'Direktör (Full Yetki & Raporlar)' },
-                { value: 'Müdür', label: 'Müdür (Full Yetki & Raporlar)' },
-                { value: 'Presales', label: 'Presales (Gelir Gizleme & Rapor Kısıtlaması)' },
-                { value: 'Postsales', label: 'Postsales (Gelir Gizleme & Rapor Kısıtlaması)' },
-              ]}
-              style={{ width: '100%' }}
-            />
-          </Form.Item>
-
-          <Divider style={{ margin: '16px 0' }} />
-
+        <Form name="login_form" initialValues={{ email: 'cemil.director@techservices.com' }} onFinish={onFinish} size="large">
           {/* Email input field */}
           <Form.Item name="email" rules={[{ required: true, message: 'Lütfen e-posta adresinizi girin!' }, { type: 'email', message: 'Geçersiz e-posta adresi!' }]}>
             <Input prefix={<UserOutlined style={{ color: '#94a3b8' }} />} placeholder="E-posta Adresi" />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, List, Space, Typography, Card, Divider, MenuProps } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, List, Space, Typography, Card, Divider, MenuProps, notification } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -78,7 +78,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   // If we are on the login page or not logged in, render without the shell
   if (pathname === '/login' || !user) {
-    return <div className="page-fade-in">{children}</div>;
+    return <div key={pathname} className="page-fade-in">{children}</div>;
   }
 
   // Define sidebar menu items based on RBAC roles
@@ -187,9 +187,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <Text strong>Bildirimler ({unreadNotifications.length})</Text>
         {unreadNotifications.length > 0 && (
-          <Button type="link" size="small" onClick={markNotificationsAsRead} style={{ padding: 0 }}>
-            Tümünü okundu işaretle
-          </Button>
+          <Space size={6} style={{ fontSize: 12 }}>
+            <Button type="link" size="small" onClick={() => notification.destroy()} style={{ padding: 0 }}>
+              Ekranı Temizle
+            </Button>
+            <span style={{ color: '#e2e8f0' }}>|</span>
+            <Button type="link" size="small" onClick={markNotificationsAsRead} style={{ padding: 0 }}>
+              Okundu İşaretle
+            </Button>
+          </Space>
         )}
       </div>
       <Divider style={{ margin: '8px 0' }} />
@@ -421,6 +427,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
         {/* Content Body */}
         <Content
+          key={pathname}
           className="page-fade-in"
           style={{ padding: '24px 32px', minHeight: 'calc(100vh - 64px)', overflow: 'initial' }}
         >

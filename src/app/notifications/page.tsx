@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, List, Tag, Button, Select, Space, Typography, Row, Col, Badge, message, Tooltip, Empty } from 'antd';
+import { Card, List, Tag, Button, Select, Space, Typography, Row, Col, Badge, message, Tooltip, Empty, notification } from 'antd';
 import { 
   BellOutlined, 
   CheckOutlined, 
@@ -125,21 +125,32 @@ export default function NotificationsPage() {
             Son 2 haftalık sistem, vaka, sertifika ve onay bildirimlerinizin detaylı dökümü.
           </Text>
         </div>
-        <Button 
-          type="primary" 
-          icon={<CheckOutlined />} 
-          onClick={handleMarkAllRead}
-          disabled={unreadCount === 0}
-          style={{ backgroundColor: '#002b49', height: 40, borderRadius: 6 }}
-        >
-          Tümünü Okundu İşaretle
-        </Button>
+        <Space size={10}>
+          <Button 
+            onClick={() => {
+              notification.destroy();
+              message.success('Ekrandaki tüm bildirim pencereleri kapatıldı.');
+            }}
+            style={{ height: 40, borderRadius: 6 }}
+          >
+            Ekranı Temizle
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<CheckOutlined />} 
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0}
+            style={{ backgroundColor: '#002b49', height: 40, borderRadius: 6 }}
+          >
+            Tümünü Okundu İşaretle
+          </Button>
+        </Space>
       </div>
 
       {/* Stats Cards Row */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff' }}>
             <Space direction="vertical" size={4}>
               <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13, fontWeight: 500 }}>Toplam Bildirim (14 Gün)</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -150,7 +161,7 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #ef4444' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #ef4444' }}>
             <Space direction="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Okunmamış Bildirimler</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -161,7 +172,7 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #10b981' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #10b981' }}>
             <Space direction="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Okunmuş Bildirimler</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
@@ -172,7 +183,7 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #f59e0b' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #f59e0b' }}>
             <Space direction="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Kritik Seviye Uyarılar</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>

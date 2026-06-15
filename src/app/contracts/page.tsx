@@ -171,6 +171,7 @@ export default function ContractsPage() {
 
       {/* Contracts Table Card */}
       <Card
+        className="premium-card"
         bordered={false}
         title={
           <Space>

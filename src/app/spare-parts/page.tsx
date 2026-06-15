@@ -250,29 +250,29 @@ export default function SparePartsPage() {
       {/* Summary Stats */}
       <Row gutter={16}>
         <Col xs={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Toplam Parça" value={stats.total} prefix={<ToolOutlined style={{ color: '#0ea5e9' }} />} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Stokta" value={stats.inStock} valueStyle={{ color: '#16a34a' }} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Havuzda" value={stats.pool} prefix={<InboxOutlined style={{ color: '#a855f7' }} />} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Yaşlanan (180+ gün)" value={stats.aging} valueStyle={{ color: '#ef4444' }} />
           </Card>
         </Col>
       </Row>
 
       {/* Filters + Table */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+      <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
         <Space wrap style={{ marginBottom: 16 }}>
           <Input.Search
             placeholder="Parça adı, seri no veya kod ara..."

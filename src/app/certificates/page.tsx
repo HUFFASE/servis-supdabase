@@ -379,6 +379,7 @@ export default function CertificatesPage() {
             ),
             children: (
               <Card
+                className="premium-card"
                 bordered={false}
                 style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
               >
@@ -402,6 +403,7 @@ export default function CertificatesPage() {
             ),
             children: (
               <Card
+                className="premium-card"
                 bordered={false}
                 style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
               >

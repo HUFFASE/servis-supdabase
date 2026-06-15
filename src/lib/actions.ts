@@ -19,6 +19,13 @@ const toIsoStr = (date: Date | null | undefined): string => {
   return date.toISOString();
 };
 
+const ROLE_MAP_DB_TO_UI: Record<string, 'Direktör' | 'Müdür' | 'Presales' | 'Postsales'> = {
+  'Direktor': 'Direktör',
+  'Mudur': 'Müdür',
+  'Presales': 'Presales',
+  'Postsales': 'Postsales',
+};
+
 export async function getInitialData() {
   const [
     profilesRaw,
@@ -75,7 +82,7 @@ export async function getInitialData() {
     id: p.id,
     full_name: p.full_name,
     email: p.email,
-    role: p.role,
+    role: ROLE_MAP_DB_TO_UI[p.role] || 'Postsales',
     avatar_url: p.avatar_url,
     hourly_cost: toNum(p.hourly_cost),
     updated_at: toIsoStr(p.updated_at),
@@ -226,27 +233,37 @@ export async function updateProfileInDb(
 
 // Server-side login verification
 export async function verifyLogin(email: string, password: string) {
+  console.log('[DEBUG verifyLogin] Entering with email:', email);
+  console.log('[DEBUG verifyLogin] DATABASE_URL in process.env:', process.env.DATABASE_URL);
+  
+  try {
+    const allProfiles = await prisma.profile.findMany({
+      select: { id: true, email: true, full_name: true, role: true }
+    });
+    console.log('[DEBUG verifyLogin] All profiles in DB:', allProfiles);
+  } catch (err) {
+    console.error('[DEBUG verifyLogin] Error fetching all profiles:', err);
+  }
+
   const profile = await prisma.profile.findUnique({
     where: { email },
   });
 
-  if (!profile) return null;
+  if (!profile) {
+    console.log('[DEBUG verifyLogin] Profile not found for:', email);
+    return null;
+  }
 
+  console.log('[DEBUG verifyLogin] Found profile:', { id: profile.id, role: profile.role });
   const isValid = bcrypt.compareSync(password, profile.password);
+  console.log('[DEBUG verifyLogin] Bcrypt comparison result:', isValid);
   if (!isValid) return null;
-
-  const roleMap: Record<string, 'Direktör' | 'Müdür' | 'Presales' | 'Postsales'> = {
-    'Direktor': 'Direktör',
-    'Mudur': 'Müdür',
-    'Presales': 'Presales',
-    'Postsales': 'Postsales',
-  };
 
   return {
     id: profile.id,
     full_name: profile.full_name,
     avatar_url: profile.avatar_url || '',
-    role: roleMap[profile.role] || 'Postsales',
+    role: ROLE_MAP_DB_TO_UI[profile.role] || 'Postsales',
     email: profile.email,
     updated_at: profile.updated_at.toISOString(),
     hourly_cost: Number(profile.hourly_cost),
