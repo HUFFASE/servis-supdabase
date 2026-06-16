@@ -35,6 +35,27 @@ import {
 
 const { Title, Text } = Typography;
 
+// Tinted icon badge used in KPI metric cards (uses existing theme colors)
+const IconBadge = ({ icon, color }: { icon: React.ReactNode; color: string }) => (
+  <span
+    style={{
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: `${color}1A`,
+      color,
+      fontSize: 18,
+      marginRight: 12,
+      verticalAlign: 'middle',
+    }}
+  >
+    {icon}
+  </span>
+);
+
 export default function DashboardPage() {
   const { user, cases, contracts, customers, certificates, oneOffs, profiles, timesheets } = useApp();
   const [mounted, setMounted] = React.useState(false);
@@ -224,11 +245,11 @@ export default function DashboardPage() {
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Destek Talepleri</Text>}
               value={activeCases.length}
-              prefix={<CustomerServiceOutlined style={{ color: '#0ea5e9', marginRight: 8 }} />}
+              prefix={<IconBadge icon={<CustomerServiceOutlined />} color="#0ea5e9" />}
               styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
-              <Badge status="error" text={`${criticalCases.length} Kritik`} />
+              <Badge status="error" text={<Text type="secondary" style={{ fontSize: 12 }}>{`${criticalCases.length} Kritik`}</Text>} />
             </div>
           </Card>
         </Col>
@@ -238,11 +259,11 @@ export default function DashboardPage() {
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Bakım Sözleşmeleri</Text>}
               value={activeContractsCount}
-              prefix={<FileProtectOutlined style={{ color: '#10b981', marginRight: 8 }} />}
+              prefix={<IconBadge icon={<FileProtectOutlined />} color="#10b981" />}
               styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>Tüm SLA parametreleri devrede</Text>
+              <Badge status="success" text={<Text type="secondary" style={{ fontSize: 12 }}>Tüm SLA parametreleri devrede</Text>} />
             </div>
           </Card>
         </Col>
@@ -253,11 +274,11 @@ export default function DashboardPage() {
               title={<Text type="secondary" style={{ fontSize: 13 }}>Müşteri Memnuniyeti (CSAT)</Text>}
               value={totalCSATCount > 0 ? averageCSAT : 'Puan Yok'}
               suffix={totalCSATCount > 0 ? '/ 5.0' : ''}
-              prefix={<TrophyOutlined style={{ color: '#f59e0b', marginRight: 8 }} />}
+              prefix={<IconBadge icon={<TrophyOutlined />} color="#f59e0b" />}
               styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>{totalCSATCount} değerlendirme yapıldı</Text>
+              <Badge status={totalCSATCount > 0 ? 'warning' : 'default'} text={<Text type="secondary" style={{ fontSize: 12 }}>{`${totalCSATCount} değerlendirme yapıldı`}</Text>} />
             </div>
           </Card>
         </Col>
@@ -268,14 +289,14 @@ export default function DashboardPage() {
               title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Finansal Hacim</Text>}
               value={isFinanceRestricted ? 'Gizli' : totalFinancialVolume}
               formatter={isFinanceRestricted ? undefined : (value) => `$${Number(value).toLocaleString()}`}
-              prefix={<DollarOutlined style={{ color: '#f59e0b', marginRight: 8 }} />}
+              prefix={<IconBadge icon={<DollarOutlined />} color="#f59e0b" />}
               styles={{ content: { color: isFinanceRestricted ? '#94a3b8' : '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
               {isFinanceRestricted ? (
                 <Tag color="default">YETKİ SINIRLI</Tag>
               ) : (
-                <Text type="secondary" style={{ fontSize: 12 }}>Sözleşme + Biten Projeler</Text>
+                <Badge status="warning" text={<Text type="secondary" style={{ fontSize: 12 }}>Sözleşme + Biten Projeler</Text>} />
               )}
             </div>
           </Card>

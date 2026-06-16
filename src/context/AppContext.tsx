@@ -554,16 +554,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    // Manual refresh mode: data is fetched once on load and re-fetched after each CRUD action.
+    // Automatic 90s polling was removed to avoid exceeding MySQL hourly connection limits.
     fetchInitialData();
-
-    // Client-side Polling: poll database updates every 90 seconds (fully database-agnostic realtime replacement)
-    const interval = setInterval(() => {
-      fetchInitialData();
-    }, 90000);
-
-    return () => {
-      clearInterval(interval);
-    };
   }, []);
 
   // Realtime tick SLA Simulator

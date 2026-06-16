@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm } from 'antd';
 import { message } from '@/lib/antd';
-import { ProjectOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { ProjectOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, InboxOutlined } from '@ant-design/icons';
 import { useApp, OneOff } from '@/context/AppContext';
 
 const { Title, Text } = Typography;
@@ -12,10 +12,20 @@ export default function OneOffsPage() {
   const { user, oneOffs, customers, addOneOff, updateOneOff, deleteOneOff } = useApp();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedOneOff, setSelectedOneOff] = useState<OneOff | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [form] = Form.useForm();
 
   const isFinanceRestricted = user?.role === 'Presales' || user?.role === 'Postsales';
   const isEditor = user?.role === 'Direktör' || user?.role === 'Müdür';
+
+  const filteredOneOffs = oneOffs.filter((o) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      o.customer_name?.toLowerCase().includes(q) ||
+      o.name?.toLowerCase().includes(q)
+    );
+  });
 
   const openAddDrawer = () => {
     setSelectedOneOff(null);
@@ -149,9 +159,33 @@ export default function OneOffsPage() {
             <span>Proje Portföyü</span>
           </Space>
         }
+        extra={
+          <Input
+            allowClear
+            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            placeholder="Müşteri veya proje ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: 280 }}
+          />
+        }
         style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
       >
-        <Table columns={columns} dataSource={oneOffs} rowKey="id" pagination={{ pageSize: 8 }} size="middle" />
+        <Table
+          columns={columns}
+          dataSource={filteredOneOffs}
+          rowKey="id"
+          pagination={{ pageSize: 8 }}
+          size="middle"
+          locale={{
+            emptyText: (
+              <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8' }}>
+                <InboxOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 8 }} />
+                <div style={{ fontSize: 13 }}>Kayıt bulunamadı</div>
+              </div>
+            ),
+          }}
+        />
       </Card>
 
       {/* Add / Edit Drawer */}

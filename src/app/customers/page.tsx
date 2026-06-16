@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, Tabs, Descriptions, Divider, Avatar } from 'antd';
 import { message } from '@/lib/antd';
-import { TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined, CustomerServiceOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined, CustomerServiceOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined, SearchOutlined, InboxOutlined } from '@ant-design/icons';
 import { useApp, Customer } from '@/context/AppContext';
 
 const { Title, Text } = Typography;
@@ -12,7 +12,20 @@ export default function CustomersPage() {
   const { user, customers, contracts, cases, addCustomer, updateCustomer, deleteCustomer } = useApp();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedCust, setSelectedCust] = useState<Customer | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [form] = Form.useForm();
+
+  const filteredCustomers = customers.filter((c) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      c.name?.toLowerCase().includes(q) ||
+      c.industry?.toLowerCase().includes(q) ||
+      c.contact_person?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.phone?.toLowerCase().includes(q)
+    );
+  });
 
   // Customer Detail Drawer State
   const [detailVisible, setDetailVisible] = useState(false);
@@ -159,9 +172,33 @@ export default function CustomersPage() {
             <span>Müşteri Hesapları Veritabanı</span>
           </Space>
         }
+        extra={
+          <Input
+            allowClear
+            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            placeholder="Müşteri, sektör veya e-posta ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: 280 }}
+          />
+        }
         style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
       >
-        <Table columns={columns} dataSource={customers} rowKey="id" pagination={{ pageSize: 8 }} size="middle" />
+        <Table
+          columns={columns}
+          dataSource={filteredCustomers}
+          rowKey="id"
+          pagination={{ pageSize: 8 }}
+          size="middle"
+          locale={{
+            emptyText: (
+              <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8' }}>
+                <InboxOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 8 }} />
+                <div style={{ fontSize: 13 }}>Kayıt bulunamadı</div>
+              </div>
+            ),
+          }}
+        />
       </Card>
 
       {/* Add / Edit Drawer */}

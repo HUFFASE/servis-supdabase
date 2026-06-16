@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, Space, Typography, Card, Divider, MenuProps, notification } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, Space, Typography, Card, Divider, MenuProps, notification, Grid, Drawer } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -28,12 +28,16 @@ import Link from 'next/link';
 
 const { Header, Sider, Content } = Layout;
 const { Text, Title } = Typography;
+const { useBreakpoint } = Grid;
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const { user, logout, notifications, markNotificationsAsRead, markNotificationAsRead, timesheets } = useApp();
   const router = useRouter();
   const pathname = usePathname();
+  const screens = useBreakpoint();
+  const isMobile = !screens.lg;
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleNotificationClick = async (item: any) => {
     await markNotificationAsRead(item.id);
@@ -299,76 +303,99 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     ],
   };
 
-  return (
-    <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      {/* Sidebar */}
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        width={256}
-        collapsedWidth={80}
-        theme="light"
+  // Shared sidebar content (logo + menu), reused by desktop Sider and mobile Drawer
+  const renderSiderInner = (isCollapsed: boolean) => (
+    <>
+      {/* Sidebar Header (Logo) */}
+      <div
         style={{
-          boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.03)',
-          borderRight: '1px solid #f1f5f9',
-          position: 'fixed',
-          height: '100vh',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 100,
+          height: 64,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: isCollapsed ? 'center' : 'flex-start',
+          padding: isCollapsed ? '0' : '0 24px',
+          borderBottom: '1px solid #f1f5f9',
+          background: 'linear-gradient(135deg, #002b49 0%, #003a60 100%)',
         }}
       >
-        {/* Sidebar Header (Logo) */}
-        <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: '#0ea5e9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 'bold',
+              fontSize: 16,
+            }}
+          >
+            TS
+          </div>
+          {!isCollapsed && (
+            <Title level={5} style={{ margin: 0, color: '#fff', fontSize: 16, letterSpacing: 0.5 }}>
+              ERP Services
+            </Title>
+          )}
+        </div>
+      </div>
+
+      {/* Sidebar Menu */}
+      <Menu
+        theme="light"
+        mode="inline"
+        selectedKeys={[pathname]}
+        style={{ borderRight: 0, paddingTop: 16 }}
+        items={menuItems}
+        onClick={() => {
+          if (isMobile) setMobileOpen(false);
+        }}
+      />
+    </>
+  );
+
+  return (
+    <Layout style={{ minHeight: '100vh', background: '#f8fafc' }}>
+      {/* Sidebar: fixed Sider on desktop, Drawer on mobile */}
+      {isMobile ? (
+        <Drawer
+          placement="left"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          width={256}
+          closable={false}
+          styles={{ body: { padding: 0 }, header: { display: 'none' } }}
+        >
+          {renderSiderInner(false)}
+        </Drawer>
+      ) : (
+        <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          width={256}
+          collapsedWidth={80}
+          theme="light"
           style={{
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-            padding: collapsed ? '0' : '0 24px',
-            borderBottom: '1px solid #f1f5f9',
-            background: 'linear-gradient(135deg, #002b49 0%, #003a60 100%)',
+            boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.03)',
+            borderRight: '1px solid #f1f5f9',
+            position: 'fixed',
+            height: '100vh',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 100,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: '#0ea5e9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: 16,
-              }}
-            >
-              TS
-            </div>
-            {!collapsed && (
-              <Title level={5} style={{ margin: 0, color: '#fff', fontSize: 16, letterSpacing: 0.5 }}>
-                ERP Services
-              </Title>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar Menu */}
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[pathname]}
-          style={{ borderRight: 0, paddingTop: 16 }}
-          items={menuItems}
-        />
-      </Sider>
+          {renderSiderInner(collapsed)}
+        </Sider>
+      )}
 
       {/* Main Layout Area */}
-      <Layout style={{ marginLeft: collapsed ? 80 : 256, transition: 'margin-left 0.2s' }}>
+      <Layout style={{ marginLeft: isMobile ? 0 : collapsed ? 80 : 256, transition: 'margin-left 0.2s' }}>
         {/* Topbar Header */}
         <Header
           style={{
@@ -385,11 +412,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             height: 64,
           }}
         >
-          {/* Collapse/Expand Toggle Button */}
+          {/* Collapse/Expand Toggle Button (opens Drawer on mobile) */}
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
+            aria-label="Menüyü aç/kapat"
+            icon={isMobile ? <MenuUnfoldOutlined /> : collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => (isMobile ? setMobileOpen(true) : setCollapsed(!collapsed))}
             style={{ fontSize: '16px', width: 40, height: 40 }}
           />
 
@@ -406,6 +434,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Button
                   type="text"
                   shape="circle"
+                  aria-label="Bildirimler"
                   icon={<BellOutlined style={{ fontSize: 20, color: '#64748b' }} />}
                   style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 />

@@ -77,6 +77,7 @@ export default function LoginPage() {
       {/* Main Glassmorphic Login Card */}
       <Card
         variant="borderless"
+        className="login-card-in"
         style={{
           width: 420,
           borderRadius: 16,
@@ -112,6 +113,14 @@ export default function LoginPage() {
           <Text type="secondary" style={{ fontSize: 13 }}>
             Professional Services Automation & Destek Yönetimi
           </Text>
+          <div
+            style={{
+              height: 1,
+              margin: '16px auto 0',
+              width: 64,
+              background: 'linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%)',
+            }}
+          />
         </div>
 
         <Form name="login_form" initialValues={{ email: 'cemil.director@techservices.com' }} onFinish={onFinish} size="large">
@@ -131,6 +140,18 @@ export default function LoginPage() {
               Sisteme Giriş Yap
             </Button>
           </Form.Item>
+          <div style={{ textAlign: 'center' }}>
+            <Button
+              type="link"
+              size="small"
+              style={{ color: '#64748b', fontSize: 13 }}
+              onClick={() =>
+                message.info('Şifre sıfırlama için lütfen sistem yöneticinize başvurun.')
+              }
+            >
+              Şifremi unuttum?
+            </Button>
+          </div>
         </Form>
       </Card>
     </div>

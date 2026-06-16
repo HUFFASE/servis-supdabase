@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm } from 'antd';
 import { message } from '@/lib/antd';
-import { BuildOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { BuildOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, InboxOutlined } from '@ant-design/icons';
 import { useApp, Service } from '@/context/AppContext';
 
 const { Title, Text } = Typography;
@@ -13,6 +13,7 @@ export default function ServicesPage() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [filterBrand, setFilterBrand] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [form] = Form.useForm();
 
   const isEditor = user?.role === 'Direktör' || user?.role === 'Müdür';
@@ -46,9 +47,16 @@ export default function ServicesPage() {
     setSelectedService(null);
   };
 
-  const filteredServices = filterBrand
-    ? services.filter((s) => s.brand_id === filterBrand)
-    : services;
+  const filteredServices = services.filter((s) => {
+    const matchBrand = filterBrand ? s.brand_id === filterBrand : true;
+    const q = searchQuery.toLowerCase();
+    const matchSearch = searchQuery
+      ? (s.name?.toLowerCase().includes(q) ||
+         s.brand_name?.toLowerCase().includes(q) ||
+         s.description?.toLowerCase().includes(q))
+      : true;
+    return matchBrand && matchSearch;
+  });
 
   const columns = [
     {
@@ -142,17 +150,41 @@ export default function ServicesPage() {
           </Space>
         }
         extra={
-          <Select
-            allowClear
-            placeholder="Markaya Göre Filtrele"
-            style={{ width: 220 }}
-            onChange={(val) => setFilterBrand(val)}
-            options={brands.map((b) => ({ value: b.id, label: b.name }))}
-          />
+          <Space size={8}>
+            <Input
+              allowClear
+              prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+              placeholder="Hizmet ara..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: 220 }}
+            />
+            <Select
+              allowClear
+              placeholder="Markaya Göre Filtrele"
+              style={{ width: 220 }}
+              onChange={(val) => setFilterBrand(val)}
+              options={brands.map((b) => ({ value: b.id, label: b.name }))}
+            />
+          </Space>
         }
         style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
       >
-        <Table columns={columns} dataSource={filteredServices} rowKey="id" pagination={{ pageSize: 6 }} size="middle" />
+        <Table
+          columns={columns}
+          dataSource={filteredServices}
+          rowKey="id"
+          pagination={{ pageSize: 6 }}
+          size="middle"
+          locale={{
+            emptyText: (
+              <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8' }}>
+                <InboxOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 8 }} />
+                <div style={{ fontSize: 13 }}>Kayıt bulunamadı</div>
+              </div>
+            ),
+          }}
+        />
       </Card>
 
       {/* Add / Edit Drawer */}

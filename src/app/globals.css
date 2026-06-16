@@ -8,21 +8,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .notification-item-hover:hover {
@@ -45,6 +35,22 @@ body {
 
 .page-fade-in {
   animation: pageFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Login Card Entrance */
+@keyframes loginCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-card-in {
+  animation: loginCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Premium Card Interactions */
@@ -94,5 +100,13 @@ body {
 
 .ant-menu-item:hover:not(.ant-menu-item-selected) {
   background-color: rgba(14, 165, 233, 0.03) !important;
+}
+
+/* Keyboard focus visibility (accessibility) */
+.ant-btn:focus-visible,
+a:focus-visible,
+.ant-menu-item:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
 }
 

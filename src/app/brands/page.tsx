@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, Row, Col } from 'antd';
 import { message } from '@/lib/antd';
-import { TagsOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { TagsOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, InboxOutlined } from '@ant-design/icons';
 import { useApp, Brand } from '@/context/AppContext';
 
 const { Title, Text } = Typography;
@@ -12,12 +12,22 @@ export default function BrandsPage() {
   const { user, brands, addBrand, updateBrand, deleteBrand } = useApp();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [form] = Form.useForm();
 
   const isEditor = user?.role === 'Direktör' || user?.role === 'Müdür';
 
   // Sort brands alphabetically using Turkish collation rules
   const sortedBrands = [...brands].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+
+  const filteredBrands = sortedBrands.filter((b) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      b.name?.toLowerCase().includes(q) ||
+      b.description?.toLowerCase().includes(q)
+    );
+  });
 
   const openAddDrawer = () => {
     setSelectedBrand(null);
@@ -198,9 +208,33 @@ export default function BrandsPage() {
             <span>Marka Veritabanı</span>
           </Space>
         }
+        extra={
+          <Input
+            allowClear
+            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            placeholder="Marka adı veya açıklamada ara..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ width: 260 }}
+          />
+        }
         style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
       >
-        <Table columns={columns} dataSource={sortedBrands} rowKey="id" pagination={false} size="middle" />
+        <Table
+          columns={columns}
+          dataSource={filteredBrands}
+          rowKey="id"
+          pagination={false}
+          size="middle"
+          locale={{
+            emptyText: (
+              <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8' }}>
+                <InboxOutlined style={{ fontSize: 40, color: '#cbd5e1', marginBottom: 8 }} />
+                <div style={{ fontSize: 13 }}>Kayıt bulunamadı</div>
+              </div>
+            ),
+          }}
+        />
       </Card>
 
       {/* Add / Edit Drawer */}
