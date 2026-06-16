@@ -318,7 +318,7 @@ export default function CasesPage() {
                       Eskalasyon Basamakları ve Bildirim Seviyeleri:
                     </Text>
                     <Steps
-                      direction="vertical"
+                      orientation="vertical"
                       size="small"
                       style={{ marginTop: 8 }}
                       current={
