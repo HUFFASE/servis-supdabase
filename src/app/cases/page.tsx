@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, Space, Typography, Popconfirm, Avatar, Badge, List, Input as AntdInput, Tooltip, message, Divider, Row, Col, Rate, Steps, Progress } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, Space, Typography, Popconfirm, Avatar, Badge, Input as AntdInput, Tooltip, Divider, Row, Col, Rate, Steps, Progress } from 'antd';
+import { message } from '@/lib/antd';
 import { 
   CustomerServiceOutlined, 
   PlusOutlined, 
@@ -185,25 +186,26 @@ export default function CasesPage() {
                   />
                 </div>
               </div>
-              <List
-                size="small"
-                dataSource={record.comments || []}
-                locale={{ emptyText: 'Talebine ilişkin henüz yorum veya not eklenmemiş.' }}
-                renderItem={(item) => (
-                  <div style={{ padding: '8px 0', borderBottom: '1px dotted #e2e8f0', display: 'flex', gap: 12 }}>
-                    <Avatar icon={<UserOutlined />} size="small" style={{ background: '#002b49' }} />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
-                        <Text strong style={{ fontSize: 12 }}>{item.author}</Text>
-                        <Text type="secondary" style={{ fontSize: 10 }}>
-                          {new Date(item.date).toLocaleString()}
-                        </Text>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(record.comments || []).length === 0 ? (
+                  <div style={{ color: '#94a3b8', padding: '12px 0', fontSize: 13 }}>Talebine ilişkin henüz yorum veya not eklenmemiş.</div>
+                ) : (
+                  (record.comments || []).map((item: any, idx: number) => (
+                    <div key={idx} style={{ padding: '8px 0', borderBottom: '1px dotted #e2e8f0', display: 'flex', gap: 12 }}>
+                      <Avatar icon={<UserOutlined />} size="small" style={{ background: '#002b49' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                          <Text strong style={{ fontSize: 12 }}>{item.author}</Text>
+                          <Text type="secondary" style={{ fontSize: 10 }}>
+                            {new Date(item.date).toLocaleString()}
+                          </Text>
+                        </div>
+                        <Text style={{ fontSize: 13, color: '#475569', marginTop: 2 }}>{item.text}</Text>
                       </div>
-                      <Text style={{ fontSize: 13, color: '#475569', marginTop: 2 }}>{item.text}</Text>
                     </div>
-                  </div>
+                  ))
                 )}
-              />
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
@@ -303,7 +305,7 @@ export default function CasesPage() {
                         percent={Math.round(percentage)} 
                         showInfo={false}
                         strokeColor={percentage <= 25 ? '#ef4444' : percentage <= 50 ? '#f59e0b' : '#10b981'}
-                        trailColor="#e2e8f0"
+                        railColor="#e2e8f0"
                         size="small"
                       />
                     </div>
@@ -355,7 +357,7 @@ export default function CasesPage() {
               {isResolved && (
                 record.rating ? (
                   <Card size="small" style={{ background: '#f0fdf4', border: '1px solid #10b981', borderRadius: 8, boxShadow: '0 4px 12px 0 rgba(16, 185, 129, 0.05)' }}>
-                    <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                    <Space orientation="vertical" size={6} style={{ width: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Text strong style={{ color: '#065f46', fontSize: 13 }}>Müşteri Memnuniyeti</Text>
                         <Rate disabled defaultValue={record.rating} style={{ fontSize: 13 }} />
@@ -367,7 +369,7 @@ export default function CasesPage() {
                   </Card>
                 ) : (
                   <Card size="small" style={{ background: '#fffbeb', border: '1px dashed #d97706', borderRadius: 8 }}>
-                    <Space direction="vertical" size={10} style={{ width: '100%' }}>
+                    <Space orientation="vertical" size={10} style={{ width: '100%' }}>
                       <div>
                         <Text strong style={{ color: '#b45309', fontSize: 13, display: 'block', marginBottom: 2 }}>
                           Müşteri Memnuniyetini Kaydedin
@@ -451,34 +453,30 @@ export default function CasesPage() {
                     Bu vaka başlığına uygun otomatik çözüm makalesi bulunamadı.
                   </Text>
                 ) : (
-                  <List
-                    size="small"
-                    dataSource={recommendedArticles.slice(0, 3)}
-                    renderItem={(article) => (
-                      <List.Item style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                          <Button
-                            type="link"
-                            onClick={() => {
-                              setDetailsCase(null);
-                              router.push(`/knowledge`);
-                            }}
-                            style={{ padding: 0, textAlign: 'left', fontSize: 12, height: 'auto', fontWeight: 500, color: '#0ea5e9' }}
-                          >
-                            {article.title}
-                          </Button>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                            <Tag color="blue" style={{ fontSize: 9, padding: '0 4px', margin: 0 }}>
-                              {article.brand_name}
-                            </Tag>
-                            <Text type="secondary" style={{ fontSize: 10 }}>
-                              {article.helpful_votes} faydalı oy
-                            </Text>
-                          </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {recommendedArticles.slice(0, 3).map((article: any) => (
+                      <div key={article.id} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', width: '100%' }}>
+                        <Button
+                          type="link"
+                          onClick={() => {
+                            setDetailsCase(null);
+                            router.push(`/knowledge`);
+                          }}
+                          style={{ padding: 0, textAlign: 'left', fontSize: 12, height: 'auto', fontWeight: 500, color: '#0ea5e9' }}
+                        >
+                          {article.title}
+                        </Button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                          <Tag color="blue" style={{ fontSize: 9, padding: '0 4px', margin: 0 }}>
+                            {article.brand_name}
+                          </Tag>
+                          <Text type="secondary" style={{ fontSize: 10 }}>
+                            {article.helpful_votes} faydalı oy
+                          </Text>
                         </div>
-                      </List.Item>
-                    )}
-                  />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </Card>
             </div>
@@ -769,7 +767,7 @@ export default function CasesPage() {
       <Card
         className="premium-card"
         size="small"
-        bordered={false}
+        variant="borderless"
         style={{ borderRadius: 10, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.015)', background: '#fff' }}
       >
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
@@ -866,9 +864,9 @@ export default function CasesPage() {
         /* 1. LİSTE GÖRÜNÜMÜ */
         <Card
           className="premium-card"
-          bordered={false}
+          variant="borderless"
           style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
-          bodyStyle={{ padding: 0 }}
+          styles={{ body: { padding: 0 } }}
         >
           <Table
             columns={columns}
@@ -907,7 +905,7 @@ export default function CasesPage() {
                       <Text strong style={{ fontSize: 13, color: '#334155' }}>{col.title}</Text>
                     </Space>
                     <Tag 
-                      bordered={false} 
+                      variant="filled" 
                       style={{ 
                         borderRadius: 12, 
                         fontWeight: 700, 
@@ -957,10 +955,10 @@ export default function CasesPage() {
       {/* --- Drawer 1: Vaka Ekleme / Düzenleme Drawer'ı --- */}
       <Drawer
         title={selectedCase ? 'Talebi Düzenle' : 'Yeni Destek Talebi Aç'}
-        width={420}
+        size={420}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>
@@ -1053,16 +1051,16 @@ export default function CasesPage() {
       {/* --- Drawer 2: Kanban Kart Detaylarını Gösteren Drawer --- */}
       <Drawer
         title={activeDetailsCase ? `${activeDetailsCase.customer_name || 'Vaka'} - #${activeDetailsCase.id.toUpperCase()}` : 'Vaka Detayı'}
-        width={850}
+        size={850}
         onClose={() => setDetailsCase(null)}
         open={detailsCase !== null}
-        destroyOnClose
-        bodyStyle={{ padding: '16px 20px', background: '#f8fafc' }}
+        destroyOnHidden
+        styles={{ body: { padding: '16px 20px', background: '#f8fafc' } }}
       >
         {activeDetailsCase && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, background: '#fff', padding: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}>
-              <Space direction="vertical" size={2}>
+              <Space orientation="vertical" size={2}>
                 <Title level={4} style={{ margin: 0, color: '#002b49' }}>{activeDetailsCase.title}</Title>
                 <Text type="secondary" style={{ fontSize: 12 }}>Müşteri: <Text strong>{activeDetailsCase.customer_name}</Text></Text>
               </Space>

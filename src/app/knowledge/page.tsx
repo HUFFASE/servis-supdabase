@@ -14,13 +14,12 @@ import {
   Typography,
   Drawer,
   Tooltip,
-  message,
   Popconfirm,
-  List,
   Divider,
   Empty,
   Badge
 } from 'antd';
+import { message } from '@/lib/antd';
 import {
   BookOutlined,
   SearchOutlined,
@@ -243,7 +242,7 @@ function KnowledgePageContent() {
       </div>
 
       {/* Search Input Bar */}
-      <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+      <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
         <Input
           prefix={<SearchOutlined style={{ color: '#0ea5e9', marginRight: 8 }} />}
           placeholder="Makale başlığı, içerik veya teknik etiketlerde arama yapın..."
@@ -262,7 +261,7 @@ function KnowledgePageContent() {
             {/* Brands Filter */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <TagsOutlined style={{ color: '#0ea5e9' }} />
@@ -271,17 +270,16 @@ function KnowledgePageContent() {
               }
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
             >
-              <List
-                size="small"
-                dataSource={[{ id: null, name: 'Tüm Markalar' }, ...brands]}
-                renderItem={(item: any) => {
+              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 300, overflowY: 'auto' }}>
+                {[{ id: null, name: 'Tüm Markalar' }, ...brands].map((item: any) => {
                   const isSelected = selectedBrand === item.id;
                   const count = item.id
                     ? knowledgeArticles.filter((a) => a.brand_id === item.id).length
                     : knowledgeArticles.length;
 
                   return (
-                    <List.Item
+                    <div
+                      key={item.id ?? 'all'}
                       onClick={() => {
                         setSelectedBrand(item.id);
                         setSelectedTag(null);
@@ -301,16 +299,16 @@ function KnowledgePageContent() {
                     >
                       <span>{item.name}</span>
                       <Badge count={count} color={isSelected ? '#0ea5e9' : '#94a3b8'} style={{ transform: 'scale(0.85)' }} />
-                    </List.Item>
+                    </div>
                   );
-                }}
-              />
+                })}
+              </div>
             </Card>
 
             {/* Services Filter */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <FileTextOutlined style={{ color: '#10b981' }} />
@@ -334,7 +332,7 @@ function KnowledgePageContent() {
             {/* Popular Tags Filter */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <TagsOutlined style={{ color: '#8b5cf6' }} />
@@ -372,7 +370,7 @@ function KnowledgePageContent() {
         {/* Right Side: Articles List */}
         <Col xs={24} lg={18}>
           {filteredArticles.length === 0 ? (
-            <Card className="premium-card" bordered={false} style={{ borderRadius: 12, padding: '40px 0', textAlign: 'center' }}>
+            <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, padding: '40px 0', textAlign: 'center' }}>
               <Empty description="Aradığınız kriterlere uygun makale bulunamadı." />
             </Card>
           ) : (
@@ -381,7 +379,7 @@ function KnowledgePageContent() {
                 <Col xs={24} key={article.id}>
                   <Card
                     className="premium-card"
-                    bordered={false}
+                    variant="borderless"
                     onClick={() => openReader(article)}
                     style={{
                       borderRadius: 12,
@@ -472,10 +470,10 @@ function KnowledgePageContent() {
             <span>Teknik İnceleme & Çözüm Detayı</span>
           </Space>
         }
-        width={720}
+        size={720}
         onClose={() => setReaderArticle(null)}
         open={readerArticle !== null}
-        destroyOnClose
+        destroyOnHidden
         extra={
           readerArticle && (
             <Space>
@@ -497,7 +495,7 @@ function KnowledgePageContent() {
               {readerArticle.title}
             </Title>
 
-            <Space size={16} style={{ flexWrap: 'wrap' }} split={<Divider type="vertical" />}>
+            <Space size={16} style={{ flexWrap: 'wrap' }} separator={<Divider orientation="vertical" />}>
               <Tag color="geekblue">{readerArticle.brand_name}</Tag>
               <Text type="secondary" style={{ fontSize: 12 }}>Yazar: {readerArticle.author_name}</Text>
               <Text type="secondary" style={{ fontSize: 12 }}>Tarih: {new Date(readerArticle.created_at).toLocaleDateString()}</Text>
@@ -528,10 +526,10 @@ function KnowledgePageContent() {
       {/* 2. Article Writer & Editor Drawer */}
       <Drawer
         title={editingArticle ? 'Makaleyi Düzenle' : 'Yeni Bilgi Bankası Makalesi Yaz'}
-        width={720}
+        size={720}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, message, Tabs, Descriptions, Divider, Avatar } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, Tabs, Descriptions, Divider, Avatar } from 'antd';
+import { message } from '@/lib/antd';
 import { TeamOutlined, PlusOutlined, EditOutlined, DeleteOutlined, FileTextOutlined, CustomerServiceOutlined, ClockCircleOutlined, UserOutlined, CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useApp, Customer } from '@/context/AppContext';
 
@@ -151,7 +152,7 @@ export default function CustomersPage() {
       {/* CRM Database Table Card */}
       <Card
         className="premium-card"
-        bordered={false}
+        variant="borderless"
         title={
           <Space>
             <TeamOutlined style={{ color: '#0ea5e9' }} />
@@ -166,10 +167,10 @@ export default function CustomersPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedCust ? 'Müşteri Bilgilerini Düzenle' : 'Yeni Müşteri Hesabı Ekle'}
-        width={380}
+        size={380}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>
@@ -226,13 +227,13 @@ export default function CustomersPage() {
             <span>Müşteri Detay Kartı - {detailCust?.name}</span>
           </Space>
         }
-        width={600}
+        size={600}
         onClose={() => {
           setDetailVisible(false);
           setDetailCust(null);
         }}
         open={detailVisible}
-        destroyOnClose
+        destroyOnHidden
       >
         {detailCust && (() => {
           const custContracts = contracts.filter((c) => c.customer_id === detailCust.id);

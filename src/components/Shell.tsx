@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, List, Space, Typography, Card, Divider, MenuProps, notification } from 'antd';
+import { Layout, Menu, Button, Avatar, Dropdown, Badge, Popover, Space, Typography, Card, Divider, MenuProps, notification } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -199,44 +199,48 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         )}
       </div>
       <Divider style={{ margin: '8px 0' }} />
-      <List
-        size="small"
-        dataSource={unreadNotifications.slice(0, 5)}
-        locale={{ emptyText: 'Yeni bildirim yok' }}
-        renderItem={(item) => (
-          <List.Item
-            key={item.id}
-            onClick={() => handleNotificationClick(item)}
-            style={{
-              padding: '10px 8px',
-              backgroundColor: 'rgba(14, 165, 233, 0.04)',
-              borderRadius: 6,
-              marginBottom: 6,
-              borderBottom: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease-in-out'
-            }}
-            className="notification-item-hover"
-          >
-            <List.Item.Meta
-              title={
-                <Space>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor:
-                        item.severity === 'error' ? '#ef4444' : item.severity === 'warning' ? '#f59e0b' : '#0ea5e9',
-                      display: 'inline-block'
-                    }}
-                  />
-                  <Text strong style={{ fontSize: 13 }}>
-                    {item.title}
-                  </Text>
-                </Space>
-              }
-              description={
+      {(() => {
+        const dataSource = unreadNotifications.slice(0, 5);
+        if (dataSource.length === 0) {
+          return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '16px 0', fontSize: 13 }}>Yeni bildirim yok</div>;
+        }
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {dataSource.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleNotificationClick(item)}
+                style={{
+                  padding: '10px 8px',
+                  backgroundColor: 'rgba(14, 165, 233, 0.04)',
+                  borderRadius: 6,
+                  marginBottom: 6,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4
+                }}
+                className="notification-item-hover"
+              >
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Space>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor:
+                          item.severity === 'error' ? '#ef4444' : item.severity === 'warning' ? '#f59e0b' : '#0ea5e9',
+                        display: 'inline-block'
+                      }}
+                    />
+                    <Text strong style={{ fontSize: 13 }}>
+                      {item.title}
+                    </Text>
+                  </Space>
+                </div>
                 <div style={{ paddingLeft: 12 }}>
                   <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
                     {item.message}
@@ -245,11 +249,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                     {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </div>
-              }
-            />
-          </List.Item>
-        )}
-      />
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       {notifications.length > 0 && (
         <div style={{ textAlign: 'center', marginTop: 8, borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
           <Button type="link" size="small" onClick={() => router.push('/notifications')} style={{ fontWeight: 500 }}>

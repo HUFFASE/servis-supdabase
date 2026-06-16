@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, Row, Col, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Space, Typography, Popconfirm, Row, Col } from 'antd';
+import { message } from '@/lib/antd';
 import { TagsOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useApp, Brand } from '@/context/AppContext';
 
@@ -153,9 +154,9 @@ export default function BrandsPage() {
           <Col xs={24} sm={12} md={6} key={b.id}>
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
-              bodyStyle={{ padding: 20 }}
+              styles={{ body: { padding: 20 } }}
             >
               <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
                 <div
@@ -190,7 +191,7 @@ export default function BrandsPage() {
       {/* Brands Table */}
       <Card
         className="premium-card"
-        bordered={false}
+        variant="borderless"
         title={
           <Space>
             <TagsOutlined style={{ color: '#0ea5e9' }} />
@@ -205,10 +206,10 @@ export default function BrandsPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedBrand ? 'Markayı Düzenle' : 'Yeni Marka Ekle'}
-        width={380}
+        size={380}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

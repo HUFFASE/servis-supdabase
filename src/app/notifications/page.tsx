@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, List, Tag, Button, Select, Space, Typography, Row, Col, Badge, message, Tooltip, Empty, notification } from 'antd';
+import { Card, Tag, Button, Select, Space, Typography, Row, Col, Badge, Tooltip, Empty, Pagination } from 'antd';
+import { message, notification } from '@/lib/antd';
 import { 
   BellOutlined, 
   CheckOutlined, 
@@ -31,6 +32,7 @@ export default function NotificationsPage() {
   // Filters State
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [severityFilter, setSeverityFilter] = useState<'all' | 'error' | 'warning' | 'info'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Handle single notification click & routing
   const handleNotificationClick = async (item: AppNotification) => {
@@ -150,8 +152,8 @@ export default function NotificationsPage() {
       {/* Stats Cards Row */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff' }}>
-            <Space direction="vertical" size={4}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#fff' }}>
+            <Space orientation="vertical" size={4}>
               <Text style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: 13, fontWeight: 500 }}>Toplam Bildirim (14 Gün)</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontSize: 28, fontWeight: 700 }}>{totalInTwoWeeks}</span>
@@ -161,8 +163,8 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #ef4444' }}>
-            <Space direction="vertical" size={4}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #ef4444' }}>
+            <Space orientation="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Okunmamış Bildirimler</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontSize: 28, fontWeight: 700, color: '#ef4444' }}>{unreadCount}</span>
@@ -172,8 +174,8 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #10b981' }}>
-            <Space direction="vertical" size={4}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #10b981' }}>
+            <Space orientation="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Okunmuş Bildirimler</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontSize: 28, fontWeight: 700, color: '#10b981' }}>{readCount}</span>
@@ -183,8 +185,8 @@ export default function NotificationsPage() {
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #f59e0b' }}>
-            <Space direction="vertical" size={4}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)', borderLeft: '4px solid #f59e0b' }}>
+            <Space orientation="vertical" size={4}>
               <Text type="secondary" style={{ fontSize: 13, fontWeight: 500 }}>Kritik Seviye Uyarılar</Text>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontSize: 28, fontWeight: 700, color: '#f59e0b' }}>{criticalCount}</span>
@@ -197,7 +199,7 @@ export default function NotificationsPage() {
 
       {/* Filters & Content Panel */}
       <Card 
-        bordered={false} 
+        variant="borderless" 
         style={{ borderRadius: 12, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)' }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
@@ -208,7 +210,10 @@ export default function NotificationsPage() {
           <Space size={12} wrap>
             <Select 
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={(val) => {
+                setStatusFilter(val);
+                setCurrentPage(1);
+              }}
               style={{ width: 160 }}
               options={[
                 { value: 'all', label: 'Tüm Bildirimler' },
@@ -218,7 +223,10 @@ export default function NotificationsPage() {
             />
             <Select 
               value={severityFilter}
-              onChange={setSeverityFilter}
+              onChange={(val) => {
+                setSeverityFilter(val);
+                setCurrentPage(1);
+              }}
               style={{ width: 160 }}
               options={[
                 { value: 'all', label: 'Tüm Dereceler' },
@@ -237,11 +245,8 @@ export default function NotificationsPage() {
             style={{ padding: '48px 0' }}
           />
         ) : (
-          <List
-            itemLayout="horizontal"
-            dataSource={filteredNotifications}
-            pagination={{ pageSize: 8 }}
-            renderItem={(item) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {filteredNotifications.slice((currentPage - 1) * 8, currentPage * 8).map((item) => {
               const severityConfig = {
                 error: { color: '#ef4444', icon: <AlertOutlined style={{ color: '#ef4444' }} />, label: 'Kritik' },
                 warning: { color: '#f59e0b', icon: <WarningOutlined style={{ color: '#f59e0b' }} />, label: 'Uyarı' },
@@ -249,46 +254,39 @@ export default function NotificationsPage() {
               }[item.severity] || { color: '#64748b', icon: <BellOutlined />, label: 'Genel' };
 
               return (
-                <List.Item
-                  actions={[
-                    <Tooltip title="Git ve Detayı Gör" key="route">
-                      <Button 
-                        type="text" 
-                        icon={<ArrowRightOutlined style={{ color: '#002b49' }} />} 
-                        onClick={() => handleNotificationClick(item)}
-                      />
-                    </Tooltip>
-                  ]}
+                <div
+                  key={item.id}
                   style={{
                     padding: '16px 20px',
                     borderRadius: 8,
-                    marginBottom: 10,
                     backgroundColor: item.read ? 'transparent' : 'rgba(14, 165, 233, 0.04)',
                     border: '1px solid #f1f5f9',
                     transition: 'all 0.2s ease-in-out',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
                   className="notification-item-hover"
                   onClick={() => handleNotificationClick(item)}
                 >
-                  <List.Item.Meta
-                    avatar={
-                      <div 
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: '50%',
-                          backgroundColor: `${severityConfig.color}10`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: `1px solid ${severityConfig.color}20`
-                        }}
-                      >
-                        {severityConfig.icon}
-                      </div>
-                    }
-                    title={
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flex: 1 }}>
+                    <div 
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        backgroundColor: `${severityConfig.color}10`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: `1px solid ${severityConfig.color}20`,
+                        flexShrink: 0
+                      }}
+                    >
+                      {severityConfig.icon}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <Space size={8} style={{ display: 'flex', flexWrap: 'wrap' }}>
                         <Text strong={!item.read} style={{ fontSize: 14, color: '#1e293b' }}>
                           {item.title}
@@ -300,25 +298,43 @@ export default function NotificationsPage() {
                           <Badge status="processing" style={{ marginLeft: 4 }} />
                         )}
                       </Space>
-                    }
-                    description={
-                      <div style={{ marginTop: 4 }}>
-                        <Text type="secondary" style={{ fontSize: 13, display: 'block', color: '#64748b', marginBottom: 6 }}>
-                          {item.message}
-                        </Text>
-                        <Space size={4} style={{ color: '#94a3b8', fontSize: 11 }}>
-                          <ClockCircleOutlined />
-                          <span>{dayjs(item.timestamp).fromNow()}</span>
-                          <span>•</span>
-                          <span>{dayjs(item.timestamp).format('DD MMMM YYYY, HH:mm')}</span>
-                        </Space>
-                      </div>
-                    }
-                  />
-                </List.Item>
+                      <Text type="secondary" style={{ fontSize: 13, display: 'block', color: '#64748b', marginBottom: 6 }}>
+                        {item.message}
+                      </Text>
+                      <Space size={4} style={{ color: '#94a3b8', fontSize: 11 }}>
+                        <ClockCircleOutlined />
+                        <span>{dayjs(item.timestamp).fromNow()}</span>
+                        <span>•</span>
+                        <span>{dayjs(item.timestamp).format('DD MMMM YYYY, HH:mm')}</span>
+                      </Space>
+                    </div>
+                  </div>
+                  <Tooltip title="Git ve Detayı Gör">
+                    <Button 
+                      type="text" 
+                      icon={<ArrowRightOutlined style={{ color: '#002b49' }} />} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNotificationClick(item);
+                      }}
+                    />
+                  </Tooltip>
+                </div>
               );
-            }}
-          />
+            })}
+
+            {filteredNotifications.length > 8 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                <Pagination
+                  current={currentPage}
+                  pageSize={8}
+                  total={filteredNotifications.length}
+                  onChange={setCurrentPage}
+                  showSizeChanger={false}
+                />
+              </div>
+            )}
+          </div>
         )}
       </Card>
     </div>

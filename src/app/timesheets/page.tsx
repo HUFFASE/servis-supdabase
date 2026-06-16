@@ -19,12 +19,12 @@ import {
   Tabs,
   Badge,
   Tooltip,
-  message,
   Popconfirm,
   Statistic,
   Divider,
   Empty
 } from 'antd';
+import { message } from '@/lib/antd';
 import {
   ClockCircleOutlined,
   CalendarOutlined,
@@ -342,7 +342,7 @@ export default function TimesheetsPage() {
       render: (record: Timesheet) => {
         const engineer = profiles.find((p) => p.id === record.profile_id);
         return (
-          <Space direction="vertical" size={2}>
+          <Space orientation="vertical" size={2}>
             <Text strong style={{ fontSize: 13 }}>{record.profile_name}</Text>
             <Text type="secondary" style={{ fontSize: 10 }}>{engineer?.role}</Text>
           </Space>
@@ -462,7 +462,7 @@ export default function TimesheetsPage() {
       render: (record: Timesheet) => {
         const engineer = profiles.find((p) => p.id === record.profile_id);
         return (
-          <Space direction="vertical" size={2}>
+          <Space orientation="vertical" size={2}>
             <Text strong style={{ fontSize: 13 }}>{record.profile_name}</Text>
             <Text type="secondary" style={{ fontSize: 10 }}>{engineer?.role}</Text>
           </Space>
@@ -581,49 +581,49 @@ export default function TimesheetsPage() {
       {/* Analytics Summary Row (Only for the engineer view, but always visible for context) */}
       <Row gutter={[20, 20]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Onaylanan Toplam Saat</Text>}
               value={myTotalApprovedHours}
               suffix="saat"
               prefix={<CheckCircleOutlined style={{ color: '#10b981', marginRight: 6 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Onay Bekleyen Saat</Text>}
               value={myTotalSubmittedHours}
               suffix="saat"
               prefix={<ClockCircleOutlined style={{ color: '#f59e0b', marginRight: 6 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Taslak Eforlarım</Text>}
               value={myTotalDraftHours}
               suffix="saat"
               prefix={<SolutionOutlined style={{ color: '#0ea5e9', marginRight: 6 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
           </Card>
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 12 }}>Faturalandırılabilirlik Oranı</Text>}
               value={myBillableRatio}
               suffix="%"
               prefix={<FileProtectOutlined style={{ color: '#8b5cf6', marginRight: 6 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
           </Card>
         </Col>
@@ -650,7 +650,7 @@ export default function TimesheetsPage() {
                 <Col xs={24} lg={8}>
                   <Card
                     className="premium-card"
-                    bordered={false}
+                    variant="borderless"
                     title={
                       <Space>
                         <PlusOutlined style={{ color: '#0ea5e9' }} />
@@ -763,7 +763,7 @@ export default function TimesheetsPage() {
                 <Col xs={24} lg={16}>
                   <Card
                     className="premium-card"
-                    bordered={false}
+                    variant="borderless"
                     title={
                       <Space>
                         <CalendarOutlined style={{ color: '#0ea5e9' }} />
@@ -805,10 +805,10 @@ export default function TimesheetsPage() {
                     </Space>
                   ),
                   children: (
-                    <Space direction="vertical" size={24} style={{ width: '100%' }}>
+                    <Space orientation="vertical" size={24} style={{ width: '100%' }}>
                       <Card
                         className="premium-card"
-                        bordered={false}
+                        variant="borderless"
                         title={
                           <Space>
                             <SolutionOutlined style={{ color: '#f59e0b' }} />
@@ -831,7 +831,7 @@ export default function TimesheetsPage() {
 
                       <Card
                         className="premium-card"
-                        bordered={false}
+                        variant="borderless"
                         title={
                           <Space>
                             <CheckCircleOutlined style={{ color: '#10b981' }} />

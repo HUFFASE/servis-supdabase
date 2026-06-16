@@ -477,6 +477,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const fetchInitialData = async () => {
     try {
       const data = await actions.getInitialData();
+      if (!data || 'error' in data) {
+        console.warn('Database is unreachable. Using local mock data fallback.', (data as any)?.message || '');
+        return;
+      }
       
       setProfiles(data.profiles as Profile[]);
       setBrands(data.brands as Brand[]);
@@ -565,28 +569,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // Realtime tick SLA Simulator
   useEffect(() => {
     const interval = setInterval(() => {
-      const initialSlaMap = {
-        Critical: 2.0,
-        High: 4.0,
-        Medium: 24.0,
-        Low: 72.0
-      };
-
-      const addLocalNotification = (title: string, message: string, severity: 'info' | 'warning' | 'error') => {
-        const newAlert = {
-          id: `n_sim_${Date.now()}_${Math.random()}`,
-          title,
-          message,
-          severity,
-          timestamp: new Date().toISOString(),
-          read: false
-        };
-        setNotifications((prev) => [newAlert, ...prev]);
-      };
-
       // 1. Tick down SLA counter on open/in-progress cases
       setCases((prevCases) => {
-        const updated = prevCases.map((c) => {
+        return prevCases.map((c) => {
           if ((c.status === 'Open' || c.status === 'In Progress') && c.sla_countdown_hours > 0) {
             const nextVal = parseFloat((c.sla_countdown_hours - 0.05).toFixed(2));
             const finalVal = nextVal < 0 ? 0 : nextVal;
@@ -596,48 +581,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           }
           return c;
         });
-
-        // 2. Escalation trigger and check for each case
-        updated.forEach((c) => {
-          if (c.status === 'Open' || c.status === 'In Progress') {
-            const initialLimit = initialSlaMap[c.severity] || 24.0;
-            const remainingRatio = c.sla_countdown_hours / initialLimit;
-            const percentage = remainingRatio * 100;
-
-            if (c.sla_countdown_hours === 0) {
-              // Red Alert
-              const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA İhlali'));
-              if (!exists) {
-                const title = `🔴 SLA İhlali! - ${c.customer_name || 'Müşteri'}`;
-                const message = `"${c.title}" başlıklı talebin SLA süresi aşılmıştır! Bölüm Direktörü (Kemal Yılmaz) ve teknik operasyon ekibi alarma geçirildi.`;
-                addLocalNotification(title, message, 'error');
-              }
-            } else if (percentage <= 25) {
-              // Orange Alert
-              const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Kritik Seviye'));
-              if (!exists) {
-                const title = `🚨 SLA Kritik Seviye (%75) - ${c.customer_name || 'Müşteri'}`;
-                const message = `"${c.title}" başlıklı talebin kalan SLA süresi %25'in altına inmiştir! Bölüm Müdürü (Ayşe Kaya) eskalasyon zincirine dahil edildi.`;
-                addLocalNotification(title, message, 'error');
-              }
-            } else if (percentage <= 50) {
-              // Yellow Alert
-              const exists = notifications.some((n) => n.title.includes(c.title) && n.title.includes('SLA Uyarısı'));
-              if (!exists) {
-                const title = `⚠️ SLA Uyarısı (%50) - ${c.customer_name || 'Müşteri'}`;
-                const message = `"${c.title}" başlıklı vakanın SLA süresi %50'nin altına indi! Sorumlu mühendis eskalasyonu tetiklendi.`;
-                addLocalNotification(title, message, 'warning');
-              }
-            }
-          }
-        });
-
-        return updated;
       });
     }, 10000); // every 10s simulates SLA countdown ticks
 
     return () => clearInterval(interval);
-  }, [notifications, customers]);
+  }, []);
 
   // Auth Actions
   const login = async (role?: UserRole, email?: string, password?: string): Promise<boolean> => {

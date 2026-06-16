@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, DatePicker, Space, Typography, Popconfirm, Tabs, Row, Col, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, DatePicker, Space, Typography, Popconfirm, Tabs, Row, Col } from 'antd';
+import { message } from '@/lib/antd';
 import { SafetyCertificateOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ClockCircleOutlined, BookOutlined } from '@ant-design/icons';
 import { useApp, Certificate, CertificateDefinition } from '@/context/AppContext';
 import dayjs from 'dayjs';
@@ -380,7 +381,7 @@ export default function CertificatesPage() {
             children: (
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
               >
                 <Table 
@@ -404,7 +405,7 @@ export default function CertificatesPage() {
             children: (
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
               >
                 <Table 
@@ -423,10 +424,10 @@ export default function CertificatesPage() {
       {/* 1. Certificate Definition Drawer (Library) */}
       <Drawer
         title={selectedDef ? 'Sertifika Tanımını Düzenle' : 'Yeni Sertifika Tanımla'}
-        width={380}
+        size={380}
         onClose={() => setDefDrawerVisible(false)}
         open={defDrawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDefDrawerVisible(false)}>İptal</Button>
@@ -460,10 +461,10 @@ export default function CertificatesPage() {
       {/* 2. Certificate Assignment Drawer */}
       <Drawer
         title={selectedCert ? 'Sertifika Atamasını Düzenle' : 'Mühendise Toplu Sertifika Ata'}
-        width={selectedCert ? 400 : 540}
+        size={selectedCert ? 400 : 540}
         onClose={() => setAssignDrawerVisible(false)}
         open={assignDrawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setAssignDrawerVisible(false)}>İptal</Button>
@@ -569,82 +570,85 @@ export default function CertificatesPage() {
               <Form.List name="assignments">
                 {(fields, { add, remove }) => (
                   <>
-                    {fields.map((field) => (
-                      <Card
-                        key={field.key}
-                        size="small"
-                        style={{
-                          marginBottom: 16,
-                          borderRadius: 8,
-                          border: '1px solid #e2e8f0',
-                          boxShadow: '0 2px 4px 0 rgba(0,0,0,0.01)',
-                          background: '#f8fafc'
-                        }}
-                        title={
-                          <Space size={6}>
-                            <SafetyCertificateOutlined style={{ color: '#0ea5e9' }} />
-                            <Text strong style={{ fontSize: 12 }}>Sertifika Ataması #{field.name + 1}</Text>
-                          </Space>
-                        }
-                        extra={
-                          fields.length > 1 && (
-                            <Button
-                              type="text"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => remove(field.name)}
-                              style={{ padding: '0 4px', height: 'auto' }}
-                            />
-                          )
-                        }
-                      >
-                        <Form.Item
-                          {...field}
-                          name={[field.name, 'def_id']}
-                          label={<span style={{ fontSize: 12, fontWeight: 500 }}>Sertifika Seçimi</span>}
-                          rules={[{ required: true, message: 'Sertifika seçilmelidir!' }]}
-                          style={{ marginBottom: 12 }}
+                    {fields.map((field) => {
+                      const { key, ...fieldRest } = field;
+                      return (
+                        <Card
+                          key={key}
+                          size="small"
+                          style={{
+                            marginBottom: 16,
+                            borderRadius: 8,
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 2px 4px 0 rgba(0,0,0,0.01)',
+                            background: '#f8fafc'
+                          }}
+                          title={
+                            <Space size={6}>
+                              <SafetyCertificateOutlined style={{ color: '#0ea5e9' }} />
+                              <Text strong style={{ fontSize: 12 }}>Sertifika Ataması #{field.name + 1}</Text>
+                            </Space>
+                          }
+                          extra={
+                            fields.length > 1 && (
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => remove(field.name)}
+                                style={{ padding: '0 4px', height: 'auto' }}
+                              />
+                            )
+                          }
                         >
-                          <Select
-                            placeholder="Kütüphaneden sertifika seçin"
-                            showSearch
-                            filterOption={(input, option) =>
-                              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                            }
-                            options={certificateDefinitions.map((d) => ({ 
-                              value: d.id, 
-                              label: `${d.name} (${d.brand_name})` 
-                            }))}
-                            style={{ width: '100%' }}
-                          />
-                        </Form.Item>
+                          <Form.Item
+                            {...fieldRest}
+                            name={[field.name, 'def_id']}
+                            label={<span style={{ fontSize: 12, fontWeight: 500 }}>Sertifika Seçimi</span>}
+                            rules={[{ required: true, message: 'Sertifika seçilmelidir!' }]}
+                            style={{ marginBottom: 12 }}
+                          >
+                            <Select
+                              placeholder="Kütüphaneden sertifika seçin"
+                              showSearch
+                              filterOption={(input, option) =>
+                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                              }
+                              options={certificateDefinitions.map((d) => ({ 
+                                value: d.id, 
+                                label: `${d.name} (${d.brand_name})` 
+                              }))}
+                              style={{ width: '100%' }}
+                            />
+                          </Form.Item>
 
-                        <Row gutter={12}>
-                          <Col span={12}>
-                            <Form.Item
-                              {...field}
-                              name={[field.name, 'issue_date']}
-                              label={<span style={{ fontSize: 12, fontWeight: 500 }}>Alınma Tarihi</span>}
-                              rules={[{ required: true, message: 'Alınma tarihi seçin!' }]}
-                              style={{ marginBottom: 0 }}
-                            >
-                              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="Seçin" />
-                            </Form.Item>
-                          </Col>
-                          <Col span={12}>
-                            <Form.Item
-                              {...field}
-                              name={[field.name, 'expiry_date']}
-                              label={<span style={{ fontSize: 12, fontWeight: 500 }}>Bitiş Tarihi</span>}
-                              rules={[{ required: true, message: 'Bitiş tarihi seçin!' }]}
-                              style={{ marginBottom: 0 }}
-                            >
-                              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="Seçin" />
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      </Card>
-                    ))}
+                          <Row gutter={12}>
+                            <Col span={12}>
+                              <Form.Item
+                                {...fieldRest}
+                                name={[field.name, 'issue_date']}
+                                label={<span style={{ fontSize: 12, fontWeight: 500 }}>Alınma Tarihi</span>}
+                                rules={[{ required: true, message: 'Alınma tarihi seçin!' }]}
+                                style={{ marginBottom: 0 }}
+                              >
+                                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="Seçin" />
+                              </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                              <Form.Item
+                                {...fieldRest}
+                                name={[field.name, 'expiry_date']}
+                                label={<span style={{ fontSize: 12, fontWeight: 500 }}>Bitiş Tarihi</span>}
+                                rules={[{ required: true, message: 'Bitiş tarihi seçin!' }]}
+                                style={{ marginBottom: 0 }}
+                              >
+                                <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" placeholder="Seçin" />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Card>
+                      );
+                    })}
                     <Button
                       type="dashed"
                       onClick={() => add()}

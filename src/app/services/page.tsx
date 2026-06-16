@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm } from 'antd';
+import { message } from '@/lib/antd';
 import { BuildOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useApp, Service } from '@/context/AppContext';
 
@@ -133,7 +134,7 @@ export default function ServicesPage() {
       {/* Filter and List Card */}
       <Card
         className="premium-card"
-        bordered={false}
+        variant="borderless"
         title={
           <Space>
             <BuildOutlined style={{ color: '#0ea5e9' }} />
@@ -157,10 +158,10 @@ export default function ServicesPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedService ? 'Hizmeti Düzenle' : 'Yeni Hizmet Ekle'}
-        width={380}
+        size={380}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

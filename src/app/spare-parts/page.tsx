@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, DatePicker, Switch, Space, Typography, Popconfirm, Row, Col, Statistic, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, DatePicker, Switch, Space, Typography, Popconfirm, Row, Col, Statistic } from 'antd';
+import { message } from '@/lib/antd';
 import { ToolOutlined, PlusOutlined, EditOutlined, DeleteOutlined, InboxOutlined, ProjectOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { useApp, SparePart } from '@/context/AppContext';
 import dayjs from 'dayjs';
@@ -250,29 +251,29 @@ export default function SparePartsPage() {
       {/* Summary Stats */}
       <Row gutter={16}>
         <Col xs={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Toplam Parça" value={stats.total} prefix={<ToolOutlined style={{ color: '#0ea5e9' }} />} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
-            <Statistic title="Stokta" value={stats.inStock} valueStyle={{ color: '#16a34a' }} />
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+            <Statistic title="Stokta" value={stats.inStock} styles={{ content: { color: '#16a34a' } }} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic title="Havuzda" value={stats.pool} prefix={<InboxOutlined style={{ color: '#a855f7' }} />} />
           </Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
-            <Statistic title="Yaşlanan (180+ gün)" value={stats.aging} valueStyle={{ color: '#ef4444' }} />
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+            <Statistic title="Yaşlanan (180+ gün)" value={stats.aging} styles={{ content: { color: '#ef4444' } }} />
           </Card>
         </Col>
       </Row>
 
       {/* Filters + Table */}
-      <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+      <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
         <Space wrap style={{ marginBottom: 16 }}>
           <Input.Search
             placeholder="Parça adı, seri no veya kod ara..."
@@ -331,10 +332,10 @@ export default function SparePartsPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedPart ? 'Yedek Parçayı Düzenle' : 'Yeni Yedek Parça'}
-        width={420}
+        size={420}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

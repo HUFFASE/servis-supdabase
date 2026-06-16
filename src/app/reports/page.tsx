@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, Typography, List, Result, Button, Avatar, Divider, Segmented, Tooltip } from 'antd';
+import { Row, Col, Card, Statistic, Table, Tag, Progress, Space, Typography, Result, Button, Avatar, Divider, Segmented, Tooltip } from 'antd';
 import {
   BarChartOutlined,
   UserOutlined,
@@ -238,12 +238,12 @@ export default function ReportsPage() {
           {/* Top Row Cards */}
           <Row gutter={[20, 20]}>
             <Col xs={24} md={8}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', textAlign: 'center' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', textAlign: 'center' }}>
                 <Progress
                   type="circle"
                   percent={slaAchievementRate}
                   strokeColor={{ '0%': '#10b981', '100%': '#0ea5e9' }}
-                  width={120}
+                  size={120}
                 />
                 <div style={{ marginTop: 16 }}>
                   <Text strong style={{ fontSize: 16, display: 'block' }}>Genel SLA Başarısı</Text>
@@ -253,14 +253,13 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} md={16}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', height: '100%' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)', height: '100%' }}>
                 <Row gutter={[20, 20]}>
                   <Col xs={24} lg={11}>
                     <Title level={5} style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 14 }}>Operasyonel SLA Başarımı Müşteri Kırılımı</Title>
-                    <List
-                      dataSource={customerSLAs}
-                      renderItem={(item) => (
-                        <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
+                      {customerSLAs.map((item) => (
+                        <div key={item.customer.id} style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                               <Text strong style={{ color: '#334155', fontSize: 12 }}>{item.customer.name}</Text>
@@ -280,9 +279,9 @@ export default function ReportsPage() {
                               strokeColor={item.slaRate >= 90 ? '#10b981' : item.slaRate >= 75 ? '#f59e0b' : '#ef4444'}
                             />
                           </div>
-                        </List.Item>
-                      )}
-                    />
+                        </div>
+                      ))}
+                    </div>
                   </Col>
                   <Col xs={24} lg={13}>
                     <Title level={5} style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: 14 }}>Müşteri Karşılaştırmalı SLA Oranları</Title>
@@ -309,7 +308,7 @@ export default function ReportsPage() {
             <Col xs={24} md={12}>
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 title={
                   <Space>
                     <FireOutlined style={{ color: '#ef4444' }} />
@@ -357,7 +356,7 @@ export default function ReportsPage() {
             <Col xs={24} md={12}>
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 title={
                   <Space>
                     <RiseOutlined style={{ color: '#8b5cf6' }} />
@@ -368,7 +367,7 @@ export default function ReportsPage() {
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div style={{ background: '#f8fafc', padding: '16px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Space direction="vertical" size={2}>
+                    <Space orientation="vertical" size={2}>
                       <Text type="secondary" style={{ fontSize: 12 }}>Toplam Açılmış Çağrı</Text>
                       <Title level={4} style={{ margin: 0, color: '#0f172a' }}>{cases.length} adet</Title>
                     </Space>
@@ -376,7 +375,7 @@ export default function ReportsPage() {
                   </div>
 
                   <div style={{ background: '#f8fafc', padding: '16px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Space direction="vertical" size={2}>
+                    <Space orientation="vertical" size={2}>
                       <Text type="secondary" style={{ fontSize: 12 }}>SLA Uyumlu Kapatılanlar</Text>
                       <Title level={4} style={{ margin: 0, color: '#10b981' }}>{metSlaCases} / {totalClosedCases}</Title>
                     </Space>
@@ -384,7 +383,7 @@ export default function ReportsPage() {
                   </div>
 
                   <div style={{ background: '#f8fafc', padding: '16px', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Space direction="vertical" size={2}>
+                    <Space orientation="vertical" size={2}>
                       <Text type="secondary" style={{ fontSize: 12 }}>Kuyruktaki Aktif Çağrı Hacmi</Text>
                       <Title level={4} style={{ margin: 0, color: '#0ea5e9' }}>{activeCases.length} adet</Title>
                     </Space>
@@ -405,7 +404,7 @@ export default function ReportsPage() {
             <Col span={24}>
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 title={
                   <Space>
                     <BarChartOutlined style={{ color: '#0ea5e9' }} />
@@ -450,7 +449,7 @@ export default function ReportsPage() {
                 <Col xs={24} sm={12} lg={6} key={item.profile.id}>
                   <Card
                     className="premium-card"
-                    bordered={false}
+                    variant="borderless"
                     style={{
                       borderRadius: 12,
                       boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)',
@@ -495,7 +494,7 @@ export default function ReportsPage() {
                         percent={Math.min(100, item.activeCount * 25)}
                         showInfo={false}
                         strokeColor={workloadColor}
-                        trailColor="#e2e8f0"
+                        railColor="#e2e8f0"
                         style={{ margin: '0 0 10px 0' }}
                       />
 
@@ -509,7 +508,7 @@ export default function ReportsPage() {
                         percent={billablePercentage}
                         showInfo={false}
                         strokeColor={fteColor}
-                        trailColor="#e2e8f0"
+                        railColor="#e2e8f0"
                         style={{ margin: 0 }}
                       />
                     </div>
@@ -522,7 +521,7 @@ export default function ReportsPage() {
           {/* Engineer Details Table */}
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space>
                 <UserOutlined style={{ color: '#0ea5e9' }} />
@@ -633,11 +632,11 @@ export default function ReportsPage() {
           {/* Revenue Breakdown statistics */}
           <Row gutter={[20, 20]} style={{ marginBottom: 8 }}>
             <Col xs={24} sm={12} lg={6}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Operasyonel Gelir</Text>}
                   value={totalRevenue}
-                  valueStyle={{ color: '#0ea5e9', fontWeight: 'bold' }}
+                  styles={{ content: { color: '#0ea5e9', fontWeight: 'bold' } }}
                   prefix={<DollarOutlined />}
                   formatter={(value) => `$${Number(value).toLocaleString()}`}
                 />
@@ -648,11 +647,11 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>İş Gücü Maliyeti (COGS)</Text>}
                   value={totalLaborCost}
-                  valueStyle={{ color: '#ef4444', fontWeight: 'bold' }}
+                  styles={{ content: { color: '#ef4444', fontWeight: 'bold' } }}
                   prefix={<ClockCircleOutlined />}
                   formatter={(value) => `$${Number(value).toLocaleString()}`}
                 />
@@ -663,11 +662,11 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Brüt Operasyonel Kâr</Text>}
                   value={totalGrossProfit}
-                  valueStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                  styles={{ content: { color: '#10b981', fontWeight: 'bold' } }}
                   prefix={<RiseOutlined />}
                   formatter={(value) => `$${Number(value).toLocaleString()}`}
                 />
@@ -678,11 +677,11 @@ export default function ReportsPage() {
             </Col>
 
             <Col xs={24} sm={12} lg={6}>
-              <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+              <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
                 <Statistic
                   title={<Text type="secondary" style={{ fontSize: 13 }}>Operasyonel Kâr Marjı</Text>}
                   value={totalMarginPercentage}
-                  valueStyle={{ color: totalMarginPercentage >= 50 ? '#10b981' : totalMarginPercentage >= 20 ? '#f59e0b' : '#ef4444', fontWeight: 'bold' }}
+                  styles={{ content: { color: totalMarginPercentage >= 50 ? '#10b981' : totalMarginPercentage >= 20 ? '#f59e0b' : '#ef4444', fontWeight: 'bold' } }}
                   prefix={<CrownOutlined />}
                   formatter={(value) => `%${value}`}
                 />
@@ -698,7 +697,7 @@ export default function ReportsPage() {
             <Col span={24}>
               <Card
                 className="premium-card"
-                bordered={false}
+                variant="borderless"
                 title={
                   <Space>
                     <RiseOutlined style={{ color: '#10b981' }} />
@@ -729,7 +728,7 @@ export default function ReportsPage() {
           {/* Customer Financial Breakdown */}
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                 <Space>

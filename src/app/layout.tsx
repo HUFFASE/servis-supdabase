@@ -5,9 +5,10 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { AppProvider } from '@/context/AppContext';
 import Shell from '@/components/Shell';
 import React from 'react';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App } from 'antd';
 import trTR from 'antd/locale/tr_TR';
 import NextTopLoader from 'nextjs-toploader';
+import AntdGlobalHelper from '@/lib/antd';
 
 
 const inter = Inter({ subsets: ['latin'] });
@@ -50,9 +51,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NextTopLoader color="#0ea5e9" height={3} showSpinner={false} shadow="0 0 10px #0ea5e9,0 0 5px #0ea5e9" />
         <AntdRegistry>
           <ConfigProvider theme={themeConfig} locale={trTR}>
-            <AppProvider>
-              <Shell>{children}</Shell>
-            </AppProvider>
+            <App>
+              <AntdGlobalHelper />
+              <AppProvider>
+                <Shell>{children}</Shell>
+              </AppProvider>
+            </App>
           </ConfigProvider>
         </AntdRegistry>
       </body>

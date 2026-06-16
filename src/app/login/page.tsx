@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { Form, Input, Button, Card, Typography } from 'antd';
+import { message } from '@/lib/antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
@@ -75,7 +76,7 @@ export default function LoginPage() {
 
       {/* Main Glassmorphic Login Card */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           width: 420,
           borderRadius: 16,

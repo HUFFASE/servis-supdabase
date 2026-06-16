@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, Space, Typography, Popconfirm } from 'antd';
+import { message } from '@/lib/antd';
 import { ProjectOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useApp, OneOff } from '@/context/AppContext';
 
@@ -141,7 +142,7 @@ export default function OneOffsPage() {
       {/* Database Table Card */}
       <Card
         className="premium-card"
-        bordered={false}
+        variant="borderless"
         title={
           <Space>
             <ProjectOutlined style={{ color: '#0ea5e9' }} />
@@ -156,10 +157,10 @@ export default function OneOffsPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedOneOff ? 'Proje Bilgilerini Düzenle' : 'Yeni Tek Seferlik Proje Ekle'}
-        width={380}
+        size={380}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

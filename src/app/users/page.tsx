@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, Space, Typography, Avatar, Row, Col, Modal, List, Divider, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, Space, Typography, Avatar, Row, Col, Modal, Divider } from 'antd';
+import { message } from '@/lib/antd';
 import {
   UserOutlined,
   EditOutlined,
@@ -33,6 +34,11 @@ export default function UsersPage() {
   // Detail Modal States
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [detailProfile, setDetailProfile] = useState<Profile | null>(null);
+  
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [form] = Form.useForm();
 
@@ -105,7 +111,7 @@ export default function UsersPage() {
       dataIndex: 'full_name',
       key: 'full_name',
       render: (text: string, record: Profile) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text strong style={{ fontSize: 14 }}>{text}</Text>
           {record.id === user?.id && <Tag color="blue">Mevcut Kullanıcı</Tag>}
         </Space>
@@ -135,7 +141,7 @@ export default function UsersPage() {
       title: 'Son Güncelleme',
       dataIndex: 'updated_at',
       key: 'updated_at',
-      render: (date: string) => <Text type="secondary" style={{ fontSize: 12 }}>{new Date(date).toLocaleString()}</Text>,
+      render: (date: string) => <Text type="secondary" style={{ fontSize: 12 }}>{mounted ? new Date(date).toLocaleString() : ''}</Text>,
     },
     {
       title: 'İşlemler',
@@ -191,8 +197,8 @@ export default function UsersPage() {
       <Row gutter={[20, 20]}>
         {/* Info Card */}
         <Col xs={24} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
-            <Space direction="vertical" align="center" style={{ width: '100%', padding: '16px 0' }} size={16}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+            <Space orientation="vertical" align="center" style={{ width: '100%', padding: '16px 0' }} size={16}>
               <Avatar src={user?.avatar_url} size={80} style={{ border: '4px solid #f1f5f9' }} />
               <div style={{ textAlign: 'center' }}>
                 <Title level={4} style={{ margin: 0 }}>{user?.full_name}</Title>
@@ -210,7 +216,7 @@ export default function UsersPage() {
         <Col xs={24} lg={18}>
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space>
                 <TeamOutlined style={{ color: '#0ea5e9' }} />
@@ -304,7 +310,7 @@ export default function UsersPage() {
           </Button>
         ]}
         width={580}
-        destroyOnClose
+        destroyOnHidden
         style={{ top: 80 }}
       >
         {detailProfile && (
@@ -331,7 +337,7 @@ export default function UsersPage() {
             <div style={{ background: '#f8fafc', padding: '16px', borderRadius: 8, border: '1px solid #f1f5f9' }}>
               <Row gutter={[16, 12]}>
                 <Col xs={24} sm={12}>
-                  <Space direction="vertical" size={2}>
+                  <Space orientation="vertical" size={2}>
                     <Text type="secondary" style={{ fontSize: 11 }}>E-posta Adresi</Text>
                     <Space size={6}>
                       <MailOutlined style={{ color: '#94a3b8' }} />
@@ -340,7 +346,7 @@ export default function UsersPage() {
                   </Space>
                 </Col>
                 <Col xs={24} sm={12}>
-                  <Space direction="vertical" size={2}>
+                  <Space orientation="vertical" size={2}>
                     <Text type="secondary" style={{ fontSize: 11 }}>Sistem ID</Text>
                     <Space size={6}>
                       <IdcardOutlined style={{ color: '#94a3b8' }} />
@@ -350,7 +356,7 @@ export default function UsersPage() {
                 </Col>
                 {(detailProfile.id === user?.id || user?.role === 'Direktör') && (
                   <Col xs={24} sm={12}>
-                    <Space direction="vertical" size={2}>
+                    <Space orientation="vertical" size={2}>
                       <Text type="secondary" style={{ fontSize: 11 }}>Giriş Şifresi</Text>
                       <Space size={6}>
                         <KeyOutlined style={{ color: '#94a3b8' }} />
@@ -360,7 +366,7 @@ export default function UsersPage() {
                   </Col>
                 )}
                 <Col xs={24}>
-                  <Space direction="vertical" size={2}>
+                  <Space orientation="vertical" size={2}>
                     <Text type="secondary" style={{ fontSize: 11 }}>Son Güncelleme Zamanı</Text>
                     <Space size={6}>
                       <CalendarOutlined style={{ color: '#94a3b8' }} />
@@ -380,7 +386,7 @@ export default function UsersPage() {
               {/* Certificates */}
               <Col xs={24} sm={12}>
                 <Card 
-                  bordered 
+                  variant="outlined" 
                   size="small" 
                   title={
                     <Space>
@@ -390,13 +396,12 @@ export default function UsersPage() {
                   }
                   style={{ height: '100%', borderRadius: 8 }}
                 >
-                  <List
-                    size="small"
-                    dataSource={userCertificates}
-                    locale={{ emptyText: 'Sertifika kaydı yok' }}
-                    renderItem={(item) => (
-                      <List.Item style={{ padding: '6px 0' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {userCertificates.length === 0 ? (
+                      <div style={{ color: '#94a3b8', textAlign: 'center', padding: '12px 0', fontSize: 12 }}>Sertifika kaydı yok</div>
+                    ) : (
+                      userCertificates.map((item) => (
+                        <div key={item.id} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', width: '100%' }}>
                           <Text strong style={{ fontSize: 12 }}>{item.name}</Text>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
                             <Text type="secondary" style={{ fontSize: 10 }}>Bitiş: {item.expiry_date}</Text>
@@ -405,16 +410,16 @@ export default function UsersPage() {
                             </Tag>
                           </div>
                         </div>
-                      </List.Item>
+                      ))
                     )}
-                  />
+                  </div>
                 </Card>
               </Col>
 
               {/* Workload / Active Tasks */}
               <Col xs={24} sm={12}>
                 <Card 
-                  bordered 
+                  variant="outlined" 
                   size="small" 
                   title={
                     <Space>
@@ -424,13 +429,12 @@ export default function UsersPage() {
                   }
                   style={{ height: '100%', borderRadius: 8 }}
                 >
-                  <List
-                    size="small"
-                    dataSource={userActiveCases}
-                    locale={{ emptyText: 'Atanmış açık görev yok' }}
-                    renderItem={(item) => (
-                      <List.Item style={{ padding: '6px 0' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {userActiveCases.length === 0 ? (
+                      <div style={{ color: '#94a3b8', textAlign: 'center', padding: '12px 0', fontSize: 12 }}>Atanmış açık görev yok</div>
+                    ) : (
+                      userActiveCases.map((item) => (
+                        <div key={item.id} style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', width: '100%' }}>
                           <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>{item.title}</Text>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
                             <Text type="secondary" style={{ fontSize: 10 }}>SLA: {item.sla_countdown_hours} sa</Text>
@@ -443,9 +447,9 @@ export default function UsersPage() {
                             </Tag>
                           </div>
                         </div>
-                      </List.Item>
+                      ))
                     )}
-                  />
+                  </div>
                 </Card>
               </Col>
             </Row>
@@ -456,10 +460,10 @@ export default function UsersPage() {
       {/* Edit Drawer */}
       <Drawer
         title="Profil Düzenle"
-        width={360}
+        size={360}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>

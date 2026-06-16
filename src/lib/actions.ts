@@ -27,176 +27,178 @@ const ROLE_MAP_DB_TO_UI: Record<string, 'Direktör' | 'Müdür' | 'Presales' | '
 };
 
 export async function getInitialData() {
-  const [
-    profilesRaw,
-    brandsRaw,
-    servicesRaw,
-    certDefsRaw,
-    certsRaw,
-    customersRaw,
-    contractsRaw,
-    oneoffsRaw,
-    casesRaw,
-    notificationsRaw,
-    timesheetsRaw,
-    sparePartsRaw,
-    feedbacksRaw,
-    articlesRaw,
-  ] = await Promise.all([
-    prisma.profile.findMany(),
-    prisma.brand.findMany(),
-    prisma.service.findMany(),
-    prisma.certificateDefinition.findMany(),
-    prisma.certificate.findMany(),
-    prisma.customer.findMany(),
-    prisma.contract.findMany(),
-    prisma.oneOff.findMany(),
-    prisma.case.findMany({
-      include: {
-        comments: {
-          orderBy: {
-            date: 'asc',
+  try {
+    const [
+      profilesRaw,
+      brandsRaw,
+      servicesRaw,
+      certDefsRaw,
+      certsRaw,
+      customersRaw,
+      contractsRaw,
+      oneoffsRaw,
+      casesRaw,
+      notificationsRaw,
+      timesheetsRaw,
+      sparePartsRaw,
+      feedbacksRaw,
+      articlesRaw,
+    ] = await Promise.all([
+      prisma.profile.findMany(),
+      prisma.brand.findMany(),
+      prisma.service.findMany(),
+      prisma.certificateDefinition.findMany(),
+      prisma.certificate.findMany(),
+      prisma.customer.findMany(),
+      prisma.contract.findMany(),
+      prisma.oneOff.findMany(),
+      prisma.case.findMany({
+        include: {
+          comments: {
+            orderBy: {
+              date: 'asc',
+            },
           },
         },
-      },
-      orderBy: {
-        created_at: 'desc',
-      },
-    }),
-    prisma.appNotification.findMany({
-      orderBy: {
-        timestamp: 'desc',
-      },
-    }),
-    prisma.timesheet.findMany({
-      orderBy: {
-        created_at: 'desc',
-      },
-    }),
-    prisma.sparePart.findMany(),
-    prisma.caseFeedback.findMany(),
-    prisma.knowledgeArticle.findMany(),
-  ]);
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+      // Temporarily disabled notifications to prevent system freeze
+      Promise.resolve([]),
+      prisma.timesheet.findMany({
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+      prisma.sparePart.findMany(),
+      prisma.caseFeedback.findMany(),
+      prisma.knowledgeArticle.findMany(),
+    ]);
 
-  const profiles = profilesRaw.map((p) => ({
-    id: p.id,
-    full_name: p.full_name,
-    email: p.email,
-    role: ROLE_MAP_DB_TO_UI[p.role] || 'Postsales',
-    avatar_url: p.avatar_url,
-    hourly_cost: toNum(p.hourly_cost),
-    updated_at: toIsoStr(p.updated_at),
-  }));
+    const profiles = profilesRaw.map((p) => ({
+      id: p.id,
+      full_name: p.full_name,
+      email: p.email,
+      role: ROLE_MAP_DB_TO_UI[p.role] || 'Postsales',
+      avatar_url: p.avatar_url,
+      hourly_cost: toNum(p.hourly_cost),
+      updated_at: toIsoStr(p.updated_at),
+    }));
 
-  const brands = brandsRaw.map((b) => ({
-    ...b,
-    updated_at: toIsoStr(b.updated_at),
-  }));
+    const brands = brandsRaw.map((b) => ({
+      ...b,
+      updated_at: toIsoStr(b.updated_at),
+    }));
 
-  const services = servicesRaw.map((s) => ({
-    ...s,
-    price_per_hour: toNum(s.price_per_hour),
-    updated_at: toIsoStr(s.updated_at),
-  }));
+    const services = servicesRaw.map((s) => ({
+      ...s,
+      price_per_hour: toNum(s.price_per_hour),
+      updated_at: toIsoStr(s.updated_at),
+    }));
 
-  const certificateDefinitions = certDefsRaw.map((cd) => ({
-    ...cd,
-    updated_at: toIsoStr(cd.updated_at),
-  }));
+    const certificateDefinitions = certDefsRaw.map((cd) => ({
+      ...cd,
+      updated_at: toIsoStr(cd.updated_at),
+    }));
 
-  const certificates = certsRaw.map((c) => ({
-    ...c,
-    issue_date: toDateStr(c.issue_date),
-    expiry_date: toDateStr(c.expiry_date),
-    updated_at: toIsoStr(c.updated_at),
-  }));
+    const certificates = certsRaw.map((c) => ({
+      ...c,
+      issue_date: toDateStr(c.issue_date),
+      expiry_date: toDateStr(c.expiry_date),
+      updated_at: toIsoStr(c.updated_at),
+    }));
 
-  const customers = customersRaw.map((cust) => ({
-    ...cust,
-    updated_at: toIsoStr(cust.updated_at),
-  }));
+    const customers = customersRaw.map((cust) => ({
+      ...cust,
+      updated_at: toIsoStr(cust.updated_at),
+    }));
 
-  const contracts = contractsRaw.map((con) => ({
-    ...con,
-    start_date: toDateStr(con.start_date),
-    end_date: toDateStr(con.end_date),
-    value: toNum(con.value),
-    updated_at: toIsoStr(con.updated_at),
-  }));
+    const contracts = contractsRaw.map((con) => ({
+      ...con,
+      start_date: toDateStr(con.start_date),
+      end_date: toDateStr(con.end_date),
+      value: toNum(con.value),
+      updated_at: toIsoStr(con.updated_at),
+    }));
 
-  const oneOffs = oneoffsRaw.map((o) => ({
-    ...o,
-    amount: toNum(o.amount),
-    updated_at: toIsoStr(o.updated_at),
-  }));
+    const oneOffs = oneoffsRaw.map((o) => ({
+      ...o,
+      amount: toNum(o.amount),
+      updated_at: toIsoStr(o.updated_at),
+    }));
 
-  const cases = casesRaw.map((c) => ({
-    ...c,
-    created_at: toIsoStr(c.created_at),
-    sla_countdown_hours: toNum(c.sla_countdown_hours),
-    comments: c.comments.map((comm) => ({
-      author: comm.author,
-      text: comm.text,
-      date: toIsoStr(comm.date),
-    })),
-  }));
+    const cases = casesRaw.map((c) => ({
+      ...c,
+      created_at: toIsoStr(c.created_at),
+      sla_countdown_hours: toNum(c.sla_countdown_hours),
+      comments: c.comments.map((comm) => ({
+        author: comm.author,
+        text: comm.text,
+        date: toIsoStr(comm.date),
+      })),
+    }));
 
-  const notifications = notificationsRaw.map((n) => ({
-    ...n,
-    timestamp: toIsoStr(n.timestamp),
-  }));
+    const notifications: any[] = [];
 
-  const timesheets = timesheetsRaw.map((ts) => ({
-    ...ts,
-    activity_date: toDateStr(ts.activity_date),
-    hours_spent: toNum(ts.hours_spent),
-    created_at: toIsoStr(ts.created_at),
-  }));
+    const timesheets = timesheetsRaw.map((ts) => ({
+      ...ts,
+      activity_date: toDateStr(ts.activity_date),
+      hours_spent: toNum(ts.hours_spent),
+      created_at: toIsoStr(ts.created_at),
+    }));
 
-  const spareParts = sparePartsRaw.map((sp) => ({
-    ...sp,
-    stock_in_date: toDateStr(sp.stock_in_date),
-    stock_out_date: sp.stock_out_date ? toDateStr(sp.stock_out_date) : null,
-    created_at: toIsoStr(sp.created_at),
-    updated_at: toIsoStr(sp.updated_at),
-  }));
+    const spareParts = sparePartsRaw.map((sp) => ({
+      ...sp,
+      stock_in_date: toDateStr(sp.stock_in_date),
+      stock_out_date: sp.stock_out_date ? toDateStr(sp.stock_out_date) : null,
+      created_at: toIsoStr(sp.created_at),
+      updated_at: toIsoStr(sp.updated_at),
+    }));
 
-  const caseFeedbacks = feedbacksRaw.map((f) => ({
-    ...f,
-    created_at: toIsoStr(f.created_at),
-  }));
+    const caseFeedbacks = feedbacksRaw.map((f) => ({
+      ...f,
+      created_at: toIsoStr(f.created_at),
+    }));
 
-  const knowledgeArticles = articlesRaw.map((a) => {
-    let tags: string[] = [];
-    try {
-      tags = JSON.parse(a.tags || '[]');
-    } catch (err) {
-      tags = [];
-    }
+    const knowledgeArticles = articlesRaw.map((a) => {
+      let tags: string[] = [];
+      try {
+        tags = JSON.parse(a.tags || '[]');
+      } catch (err) {
+        tags = [];
+      }
+      return {
+        ...a,
+        tags,
+        created_at: toIsoStr(a.created_at),
+        updated_at: toIsoStr(a.updated_at),
+      };
+    });
+
     return {
-      ...a,
-      tags,
-      created_at: toIsoStr(a.created_at),
-      updated_at: toIsoStr(a.updated_at),
+      profiles,
+      brands,
+      services,
+      certificateDefinitions,
+      certificates,
+      customers,
+      contracts,
+      oneOffs,
+      cases,
+      notifications,
+      timesheets,
+      spareParts,
+      caseFeedbacks,
+      knowledgeArticles,
     };
-  });
-
-  return {
-    profiles,
-    brands,
-    services,
-    certificateDefinitions,
-    certificates,
-    customers,
-    contracts,
-    oneOffs,
-    cases,
-    notifications,
-    timesheets,
-    spareParts,
-    caseFeedbacks,
-    knowledgeArticles,
-  };
+  } catch (error: any) {
+    console.error('[DATABASE CONNECTIVITY ERROR] getInitialData failed:', error);
+    return {
+      error: 'database_unreachable',
+      message: error.message || String(error),
+    } as any;
+  }
 }
 
 // Auth simulation profile update

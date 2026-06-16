@@ -204,7 +204,7 @@ export default function DashboardPage() {
       {/* Critical Cases Warning Alert */}
       {criticalCases.length > 0 && (
         <Alert
-          message={
+          title={
             <Text strong style={{ color: '#7f1d1d' }}>
               Müdahale Bekleyen Kritik Destek Talepleri Var!
             </Text>
@@ -220,12 +220,12 @@ export default function DashboardPage() {
       {/* Metric Cards Grid */}
       <Row gutter={[20, 20]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Destek Talepleri</Text>}
               value={activeCases.length}
               prefix={<CustomerServiceOutlined style={{ color: '#0ea5e9', marginRight: 8 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
               <Badge status="error" text={`${criticalCases.length} Kritik`} />
@@ -234,12 +234,12 @@ export default function DashboardPage() {
         </Col>
         
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Aktif Bakım Sözleşmeleri</Text>}
               value={activeContractsCount}
               prefix={<FileProtectOutlined style={{ color: '#10b981', marginRight: 8 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
               <Text type="secondary" style={{ fontSize: 12 }}>Tüm SLA parametreleri devrede</Text>
@@ -248,13 +248,13 @@ export default function DashboardPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Müşteri Memnuniyeti (CSAT)</Text>}
               value={totalCSATCount > 0 ? averageCSAT : 'Puan Yok'}
               suffix={totalCSATCount > 0 ? '/ 5.0' : ''}
               prefix={<TrophyOutlined style={{ color: '#f59e0b', marginRight: 8 }} />}
-              valueStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
               <Text type="secondary" style={{ fontSize: 12 }}>{totalCSATCount} değerlendirme yapıldı</Text>
@@ -263,13 +263,13 @@ export default function DashboardPage() {
         </Col>
 
         <Col xs={24} sm={12} lg={6}>
-          <Card className="premium-card" bordered={false} style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
+          <Card className="premium-card" variant="borderless" style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}>
             <Statistic
               title={<Text type="secondary" style={{ fontSize: 13 }}>Toplam Finansal Hacim</Text>}
               value={isFinanceRestricted ? 'Gizli' : totalFinancialVolume}
               formatter={isFinanceRestricted ? undefined : (value) => `$${Number(value).toLocaleString()}`}
               prefix={<DollarOutlined style={{ color: '#f59e0b', marginRight: 8 }} />}
-              valueStyle={{ color: isFinanceRestricted ? '#94a3b8' : '#0f172a', fontWeight: 'bold' }}
+              styles={{ content: { color: isFinanceRestricted ? '#94a3b8' : '#0f172a', fontWeight: 'bold' } }}
             />
             <div style={{ marginTop: 8 }}>
               {isFinanceRestricted ? (
@@ -288,7 +288,7 @@ export default function DashboardPage() {
         <Col xs={24} lg={12}>
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space>
                 <BarChartOutlined style={{ color: '#0ea5e9' }} />
@@ -316,7 +316,7 @@ export default function DashboardPage() {
         <Col xs={24} lg={12}>
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space>
                 <PieChartOutlined style={{ color: '#f59e0b' }} />
@@ -377,7 +377,7 @@ export default function DashboardPage() {
           <Col span={24}>
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <AreaChartOutlined style={{ color: '#10b981' }} />
@@ -421,7 +421,7 @@ export default function DashboardPage() {
         <Col xs={24} lg={16}>
           <Card
             className="premium-card"
-            bordered={false}
+            variant="borderless"
             title={
               <Space>
                 <CustomerServiceOutlined style={{ color: '#0ea5e9' }} />
@@ -448,7 +448,7 @@ export default function DashboardPage() {
             {/* SLA Gauge Card */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title="SLA Başarım Oranı"
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
             >
@@ -463,7 +463,7 @@ export default function DashboardPage() {
             {/* CSAT Leaderboard Card */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <TrophyOutlined style={{ color: '#f59e0b' }} />
@@ -472,45 +472,50 @@ export default function DashboardPage() {
               }
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
             >
-              <List
-                size="small"
-                dataSource={profiles
+              {(() => {
+                const dataSource = profiles
                   .filter((p) => typeof p.average_csat === 'number' && p.average_csat > 0)
                   .sort((a, b) => (b.average_csat || 0) - (a.average_csat || 0))
-                  .slice(0, 3)}
-                locale={{ emptyText: 'Henüz müşteri memnuniyet puanı girilmemiş.' }}
-                renderItem={(item, index) => (
-                  <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                      <Space>
-                        <Badge
-                          count={index + 1}
-                          style={{
-                            backgroundColor: index === 0 ? '#f59e0b' : index === 1 ? '#cbd5e1' : '#b45309',
-                            color: '#fff',
-                            fontWeight: 'bold',
-                            transform: 'scale(0.85)'
-                          }}
-                        />
-                        <Text strong style={{ fontSize: 13, marginLeft: 4 }}>{item.full_name}</Text>
-                        <Tag color="geekblue" style={{ fontSize: 9, padding: '0 4px', margin: 0 }}>{item.role}</Tag>
-                      </Space>
-                      <Space size={4}>
-                        <Rate disabled defaultValue={item.average_csat} style={{ fontSize: 10 }} />
-                        <Text strong style={{ color: '#002b49', fontSize: 12 }}>
-                          {item.average_csat}
-                        </Text>
-                      </Space>
-                    </div>
-                  </List.Item>
-                )}
-              />
+                  .slice(0, 3);
+                
+                if (dataSource.length === 0) {
+                  return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '16px 0', fontSize: 13 }}>Henüz müşteri memnuniyet puanı girilmemiş.</div>;
+                }
+                
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {dataSource.map((item, index) => (
+                      <div key={item.id} style={{ padding: '8px 0', borderBottom: index === dataSource.length - 1 ? 'none' : '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Space>
+                          <Badge
+                            count={index + 1}
+                            style={{
+                              backgroundColor: index === 0 ? '#f59e0b' : index === 1 ? '#cbd5e1' : '#b45309',
+                              color: '#fff',
+                              fontWeight: 'bold',
+                              transform: 'scale(0.85)'
+                            }}
+                          />
+                          <Text strong style={{ fontSize: 13, marginLeft: 4 }}>{item.full_name}</Text>
+                          <Tag color="geekblue" style={{ fontSize: 9, padding: '0 4px', margin: 0 }}>{item.role}</Tag>
+                        </Space>
+                        <Space size={4}>
+                          <Rate disabled defaultValue={item.average_csat} style={{ fontSize: 10 }} />
+                          <Text strong style={{ color: '#002b49', fontSize: 12 }}>
+                            {item.average_csat}
+                          </Text>
+                        </Space>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </Card>
 
             {/* Certificate Tracker Card */}
             <Card
               className="premium-card"
-              bordered={false}
+              variant="borderless"
               title={
                 <Space>
                   <SafetyCertificateOutlined style={{ color: '#f59e0b' }} />
@@ -520,27 +525,31 @@ export default function DashboardPage() {
               extra={<Link href="/certificates" style={{ color: '#0ea5e9' }}>Tümünü Gör</Link>}
               style={{ borderRadius: 12, boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.02)' }}
             >
-              <List
-                size="small"
-                dataSource={expiringOrExpiredCerts.slice(0, 3)}
-                locale={{ emptyText: 'Süresi yaklaşan sertifika yok' }}
-                renderItem={(item: Certificate) => (
-                  <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                        <Text strong style={{ fontSize: 13 }}>{item.name}</Text>
-                        <Tag color={item.status === 'Expired' ? 'red' : 'orange'}>
-                          {item.status === 'Expired' ? 'SÜRESİ DOLDU' : 'SON 30 GÜN'}
-                        </Tag>
+              {(() => {
+                const dataSource = expiringOrExpiredCerts.slice(0, 3);
+                if (dataSource.length === 0) {
+                  return <div style={{ color: '#94a3b8', textAlign: 'center', padding: '16px 0', fontSize: 13 }}>Süresi yaklaşan sertifika yok</div>;
+                }
+                
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {dataSource.map((item: Certificate, index) => (
+                      <div key={item.id} style={{ padding: '8px 0', borderBottom: index === dataSource.length - 1 ? 'none' : '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <Text strong style={{ fontSize: 13 }}>{item.name}</Text>
+                          <Tag color={item.status === 'Expired' ? 'red' : 'orange'}>
+                            {item.status === 'Expired' ? 'SÜRESİ DOLDU' : 'SON 30 GÜN'}
+                          </Tag>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Text type="secondary" style={{ fontSize: 11 }}>{item.profile_name}</Text>
+                          <Text type="danger" style={{ fontSize: 11 }}>Bitiş: {item.expiry_date}</Text>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Text type="secondary" style={{ fontSize: 11 }}>{item.profile_name}</Text>
-                        <Text type="danger" style={{ fontSize: 11 }}>Bitiş: {item.expiry_date}</Text>
-                      </div>
-                    </div>
-                  </List.Item>
-                )}
-              />
+                    ))}
+                  </div>
+                );
+              })()}
             </Card>
           </div>
         </Col>

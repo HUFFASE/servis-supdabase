@@ -19,7 +19,7 @@ export default function Home() {
 
   return (
     <div style={{ display: 'flex', flex: 1, height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-      <Spin size="large" tip="Yükleniyor..." />
+      <Spin size="large" description="Yükleniyor..." />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, DatePicker, Space, Typography, Popconfirm, message } from 'antd';
+import { Card, Table, Tag, Button, Drawer, Form, Input, Select, InputNumber, DatePicker, Space, Typography, Popconfirm } from 'antd';
+import { message } from '@/lib/antd';
 import { FileProtectOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useApp, Contract } from '@/context/AppContext';
 import dayjs from 'dayjs';
@@ -172,7 +173,7 @@ export default function ContractsPage() {
       {/* Contracts Table Card */}
       <Card
         className="premium-card"
-        bordered={false}
+        variant="borderless"
         title={
           <Space>
             <FileProtectOutlined style={{ color: '#0ea5e9' }} />
@@ -187,10 +188,10 @@ export default function ContractsPage() {
       {/* Add / Edit Drawer */}
       <Drawer
         title={selectedContract ? 'Sözleşme Bilgilerini Düzenle' : 'Yeni Bakım Sözleşmesi Ekle'}
-        width={380}
+        size={380}
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        destroyOnClose
+        destroyOnHidden
         extra={
           <Space>
             <Button onClick={() => setDrawerVisible(false)}>İptal</Button>
