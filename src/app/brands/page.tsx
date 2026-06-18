@@ -45,7 +45,7 @@ export default function BrandsPage() {
     setDrawerVisible(true);
   };
 
-  const onSave = (values: any) => {
+  const onSave = (values: Omit<Brand, 'id'>) => {
     if (selectedBrand) {
       updateBrand(selectedBrand.id, values);
       message.success('Marka başarıyla güncellendi.');
